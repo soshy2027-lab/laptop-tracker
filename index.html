@@ -1,36 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Laptop Tracker 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0f172a" />
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyA5NVgdCKFNcjPCt_zn0bZL3UvnrA6Z260",
+      authDomain: "laptop-tracker-2026.firebaseapp.com",
+      projectId: "laptop-tracker-2026",
+      appId: "1:439339623776:web:47551f51755a54c4f06a05"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.signup = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => alert("Signup successful"))
+        .catch(err => alert(err.message));
+    };
+
+    window.login = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => alert("Login successful"))
+        .catch(err => alert(err.message));
+    };
+  </script>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      background:#0f172a;
+      color:#fff;
+      font-family:Arial;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
     }
     .box {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
+      background:#1e293b;
+      padding:25px;
+      border-radius:10px;
+      width:100%;
+      max-width:350px;
+    }
+    input, button {
+      width:100%;
+      padding:10px;
+      margin-top:10px;
+      border-radius:5px;
+      border:none;
+    }
+    button {
+      background:#22c55e;
+      color:#000;
+      font-weight:bold;
     }
   </style>
 </head>
+
 <body>
   <div class="box">
-    <h1>💻 Laptop Tracker 2026</h1>
-    <p>Secure • Simple • Offline Ready</p>
+    <h2>🔐 Laptop Tracker Login</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button onclick="signup()">Create Account</button>
   </div>
 </body>
 </html>

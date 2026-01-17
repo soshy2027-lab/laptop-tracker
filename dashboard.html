@@ -1,150 +1,24 @@
-<div id="auth-container">
-  <h2>Sign Up</h2>
-  <input type="email" id="signup-email" placeholder="Email">
-  <input type="password" id="signup-password" placeholder="Password">
-  <button id="signup-btn">Sign Up</button>
-
-  <h2>Login</h2>
-  <input type="email" id="login-email" placeholder="Email">
-  <input type="password" id="login-password" placeholder="Password">
-  <button id="login-btn">Login</button>
-</div>
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Laptop Tracker Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background: #f4f4f4;
-        }
-        .card {
-            background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            box-shadow: 0 0 5px #aaa;
-        }
-        #result {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-    </style>
+  <title>Laptop Tracker Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body style="font-family:Arial; padding:20px">
 
-<img src="logo.PNG" alt="App Logo" style="width:150px">
-<h2>Your Registered Laptops</h2>
+<h2>Welcome to Laptop Tracker 2026</h2>
 
-<div id="laptopList">Loading...</div>
-<div id="result">Getting location...</div>
+<p>You are logged in.</p>
 
-<!-- Include Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<button onclick="logout()">Logout</button>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
-
-  // Initialize Supabase
-  const SUPABASE_URL = 'https://ytalqhmarprgojenbbsn.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0YWxxaG1hcnByZ29qZW5iYnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2NjA0NDksImV4cCI6MjA4MDIzNjQ0OX0.Qr5noF-HkXo_VHd4gTr_PYUFeJUm8oFFQLdroRxtxdk';
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-<script type="module">
-    // Initialize Supabase
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-    const supabaseUrl = "https://ytalqhmarprgojenbbsn.supabase.co"; // Your Supabase project URL
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0YWxxaG1hcnByZ29qZW5iYnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2NjA0NDksImV4cCI6MjA4MDIzNjQ0OX0.Qr5noF-HkXo_VHd4gTr_PYUFeJUm8oFFQLdroRxtxdk"; // Your anon key
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Load registered laptops
-    async function loadLaptops() {
-        const { data, error } = await supabase.from("laptop_tracker").select("*");
-        if (error) {
-            document.getElementById("laptopList").innerText = "Error loading laptops";
-            console.log(error);
-            return;
-        }
-        let html = "";
-        data.forEach(lap => {
-            html += `
-                <div class="card">
-                    <h3>${lap.name || "Unnamed Laptop"}</h3>
-                    <p><b>Serial:</b> ${lap.serial || "N/A"}</p>
-                    <p><b>Last Known Location:</b> ${lap.latitude && lap.longitude ? lap.latitude + ", " + lap.longitude : "Not yet tracked"}</p>
-                </div>
-            `;
-        });
-        document.getElementById("laptopList").innerHTML = html;
-    }
-
-// Sign Up
-document.getElementById('signup-btn').addEventListener('click', async () => {
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) {
-    alert('Sign Up Error: ' + error.message);
-  } else {
-    alert('Sign Up Successful! Check your email to confirm.');
-  }
-});
-
-// Login
-document.getElementById('login-btn').addEventListener('click', async () => {
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
-
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    alert('Login Error: ' + error.message);
-  } else {
-    alert('Login Successful!');
-    // Hide auth form
-    document.getElementById('auth-container').style.display = 'none';
-  }
-});
-    loadLaptops();
-
-    // Send location to Supabase
-    async function sendLocation() {
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser");
-            document.getElementById("result").innerText = "Geolocation not supported";
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                const { latitude, longitude } = pos.coords;
-
-                document.getElementById("result").innerHTML =
-                    "Latitude: " + latitude + "<br>Longitude: " + longitude;
-
-                const { error } = await supabase
-                    .from("laptop_tracker")
-                    .insert([{ latitude, longitude, status: "active" }]);
-
-                if (error) {
-                    alert("Failed to save location ❌");
-                    console.log(error);
-                } else {
-                    alert("Location sent successfully ✅");
-                }
-            },
-            (err) => {
-                alert("Getting location failed: " + err.message);
-                document.getElementById("result").innerText = "Location denied or error";
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    }
-
-    // Call location function on page load
-    sendLocation();
+function logout(){
+  firebase.auth().signOut().then(()=>{
+    window.location.href = "index.html";
+  });
+}
 </script>
 
 </body>

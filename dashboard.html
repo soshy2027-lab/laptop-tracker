@@ -5,18 +5,47 @@
 </head>
 <body>
 
-<h2>FILE LOADED ✅</h2>
+<h2>Laptop Registration</h2>
 
-<form onsubmit="saveLaptop(); return false;">
-  <input type="text" id="brand" placeholder="Laptop Brand" required><br><br>
-  <input type="text" id="serial" placeholder="Serial Number" required><br><br>
+<form id="laptopForm">
+
+  <label>Laptop Brand</label><br>
+  <input type="text" id="brand" required><br><br>
+
+  <label>Model</label><br>
+  <input type="text" id="model" required><br><br>
+
+  <label>Serial Number</label><br>
+  <input type="text" id="serial" required><br><br>
+
+  <label>Processor</label><br>
+  <input type="text" id="processor"><br><br>
+
+  <label>RAM</label><br>
+  <input type="text" id="ram"><br><br>
+
+  <label>Storage</label><br>
+  <input type="text" id="storage"><br><br>
+
   <button type="submit">Submit</button>
+
 </form>
 
+<p id="status"></p>
+
 <script>
-function saveLaptop() {
-  alert("SUBMIT WORKING ✅");
-}
+document.getElementById("laptopForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  document.getElementById("status").innerText = "Submit working ✅";
+
+  console.log("Brand:", brand.value);
+  console.log("Model:", model.value);
+  console.log("Serial:", serial.value);
+  console.log("Processor:", processor.value);
+  console.log("RAM:", ram.value);
+  console.log("Storage:", storage.value);
+});
 </script>
 
 </body>

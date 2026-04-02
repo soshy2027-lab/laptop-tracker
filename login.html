@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Laptop Tracker</title>
+</head>
+<body>
+
+<h2>Register</h2>
+<input type="text" id="regEmail" placeholder="Email"><br>
+<input type="password" id="regPassword" placeholder="Password"><br>
+<button onclick="register()">Register</button>
+
+<h2>Login</h2>
+<input type="text" id="loginEmail" placeholder="Email"><br>
+<input type="password" id="loginPassword" placeholder="Password"><br>
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+<script>
+async function register(){
+    const email = regEmail.value;
+    const password = regPassword.value;
+
+    const res = await fetch("/registerUser", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({email, password})
+    });
+
+    const data = await res.json();
+    msg.innerText = data.message;
+}
+
+async function login(){
+    const email = loginEmail.value;
+    const password = loginPassword.value;
+
+    const res = await fetch("/loginUser", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({email, password})
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+    localStorage.setItem("userEmail", email);
+    window.location.href = "/dashboard.html";
+    } else {
+        msg.innerText = "Invalid login";
+    }
+}
+</script>
+
+</body>
+</html>

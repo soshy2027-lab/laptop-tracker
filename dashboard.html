@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Laptop Tracker</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    padding: 20px;
+}
+
+h1 {
+    color: #38bdf8;
+}
+
+.container {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+input {
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+}
+
+button {
+    padding: 8px 12px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.btn-primary { background: #38bdf8; color: black; }
+.btn-danger { background: red; color: white; }
+.btn-warning { background: orange; color: black; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+}
+
+.stolen { color: red; font-weight: bold; }
+.safe { color: lightgreen; font-weight: bold; }
+</style>
+
+</head>
+
+<body>
+
+<h1>💻 Laptop Tracker</h1>
+<button class="btn-danger" onclick="logout()">Logout</button>
+
+<div class="container">
+<h2>Register Laptop</h2>
+<input id="brand" placeholder="Brand">
+<input id="model" placeholder="Model">
+<input id="serial" placeholder="Serial">
+<input id="processor" placeholder="Processor">
+<input id="ram" placeholder="RAM">
+<input id="storage" placeholder="Storage">
+<br>
+<button class="btn-primary" onclick="registerLaptop()">Save</button>
+</div>
+
+<div class="container">
+<h2>Check Laptop</h2>
+<input id="searchSerial" placeholder="Enter Serial">
+<button class="btn-warning" onclick="checkLaptop()">Check</button>
+<p id="status"></p>
+</div>
+
+<div class="container">
+<button class="btn-primary" onclick="loadLaptops()">All</button>
+<button class="btn-warning" onclick="loadStolen()">Stolen</button>
+
+<table>
+<tr>
+<th>Brand</th>
+<th>Model</th>
+<th>Serial</th>
+<th>Owner</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<script>
+
+async function registerLaptop(){
+    const laptop = {
+        brand: brand.value,
+        model: model.value,
+        serial: serial.value,
+        processor: processor.value,
+        ram: ram.value,
+        storage: storage.value,
+        owner: localStorage.getItem("userEmail")
+    };
+
+    await fetch("/registerLaptop", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body: JSON.stringify(laptop)
+    });
+
+    alert("Saved!");
+    loadLaptops();
+}
+
+async function loadLaptops(){
+    const res = await fetch("/allLaptops");
+    const data = await res.json();
+
+    const user = localStorage.getItem("userEmail");
+    const my = data.filter(l => l.owner === user);
+
+    display(my);
+}
+
+function display(data){
+    tableBody.innerHTML = "";
+
+    data.forEach(l=>{
+        tableBody.innerHTML += `
+        <tr>
+        <td>${l.brand}</td>
+        <td>${l.model}</td>
+        <td>${l.serial}</td>
+        <td>${l.owner}</td>
+        <td>${l.status === "stolen" ? "🚨" : "✅"}</td>
+        <td>
+        <button onclick="editLaptop('${l._id}','${l.brand}','${l.model}','${l.serial}','${l.processor}','${l.ram}','${l.storage}')">Edit</button>
+        <button class="btn-danger" onclick="deleteLaptop('${l._id}')">Delete</button>
+        <button class="btn-warning" onclick="markStolen('${l.serial}')">Stolen</button>
+        </td>
+        </tr>
+        `;
+    });
+}
+
+async function markStolen(serial){
+    await fetch("/markStolen", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body: JSON.stringify({serial})
+    });
+    loadLaptops();
+}
+
+async function deleteLaptop(id){
+    await fetch("/deleteLaptop", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body: JSON.stringify({id})
+    });
+    loadLaptops();
+}
+
+async function editLaptop(id, brand, model, serial, processor, ram, storage){
+    const newBrand = prompt("Brand", brand);
+    const newModel = prompt("Model", model);
+
+    await fetch("/updateLaptop", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body: JSON.stringify({
+            id,
+            brand: newBrand,
+            model: newModel,
+            serial,
+            processor,
+            ram,
+            storage
+        })
+    });
+
+    loadLaptops();
+}
+
+async function loadStolen(){
+    const res = await fetch("/allLaptops");
+    const data = await res.json();
+
+    const user = localStorage.getItem("userEmail");
+    display(data.filter(l => l.owner === user && l.status === "stolen"));
+}
+
+async function checkLaptop(){
+    const val = searchSerial.value.toLowerCase();
+
+    const res = await fetch("/allLaptops");
+    const data = await res.json();
+
+    const f = data.find(l => l.serial.toLowerCase() === val);
+
+    if(!f){
+        status.innerText = "❌ Not found";
+    }
+    else if(f.status === "stolen"){
+        status.innerText = "🚨 STOLEN! Contact: " + f.owner;
+    }
+    else{
+        status.innerText = "✅ Safe";
+    }
+}
+
+function logout(){
+    localStorage.removeItem("userEmail");
+    window.location.href = "/login.html";
+}
+
+loadLaptops();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: black;
+    color: white;
+    padding: 20px;
+}
+
+h1 { color: red; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+}
+
+button {
+    padding: 5px 10px;
+    margin: 3px;
+    cursor: pointer;
+}
+
+.delete { background: red; color: white; }
+</style>
+
+</head>
+
+<body>
+
+<h1>👑 ADMIN PANEL</h1>
+
+<button onclick="loadAll()">All Laptops</button>
+<button onclick="loadStolen()">Stolen Only</button>
+
+<table>
+<tr>
+<th>Brand</th>
+<th>Model</th>
+<th>Serial</th>
+<th>Owner</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+<tbody id="table"></tbody>
+</table>
+
+<script>
+
+const adminEmail = "admin@gmail.com"; // change this
+
+const user = localStorage.getItem("userEmail");
+
+if(user !== adminEmail){
+    alert("Access Denied");
+    window.location.href = "/login.html";
+}
+async function loadAll(){
+    const res = await fetch("/allLaptops");
+    const data = await res.json();
+    display(data);
+}
+
+async function loadStolen(){
+    const res = await fetch("/allLaptops");
+    const data = await res.json();
+    display(data.filter(l => l.status === "stolen"));
+}
+
+function display(data){
+    table.innerHTML = "";
+
+    data.forEach(l=>{
+        table.innerHTML += `
+        <tr>
+        <td>${l.brand}</td>
+        <td>${l.model}</td>
+        <td>${l.serial}</td>
+        <td>${l.owner}</td>
+        <td>${l.status}</td>
+        <td>
+        <button class="delete" onclick="deleteLaptop('${l._id}')">Delete</button>
+        </td>
+        </tr>
+        `;
+    });
+}
+
+async function deleteLaptop(id){
+    await fetch("/deleteLaptop", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body: JSON.stringify({id})
+    });
+
+    loadAll();
+}
+
+loadAll();
+
+</script>
+
+</body>
+</html>

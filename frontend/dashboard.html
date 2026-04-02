@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laptop Tracker Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Laptop Tracking Dashboard</h2>
+
+    <p><strong>Status:</strong> <span id="status">Offline</span></p>
+    <p><strong>Last Location:</strong> <span id="location">Not Available</span></p>
+    <p><strong>Last Active:</strong> <span id="lastActive">Unknown</span></p>
+    <p><strong>Owner:</strong> <span id="owner">Not Set</span></p>
+
+    <button onclick="refreshData()">Refresh Tracking</button>
+</div>
+
+
+<script>
+async function refreshData() {
+    try {
+        const response = await fetch("http://localhost:3000/api/track");
+        const data = await response.json();
+
+        document.getElementById("status").innerText = data.status;
+        document.getElementById("location").innerText = data.location;
+        document.getElementById("lastActive").innerText = data.lastActive;
+        document.getElementById("owner").innerText = data.owner;
+
+    } catch (err) {
+        alert("Unable to fetch data – server offline.");
+    }
+}
+</script>
+
+</body>
+</html>

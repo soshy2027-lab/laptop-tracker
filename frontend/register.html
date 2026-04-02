@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register Laptop</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Register Your Laptop</h2>
+
+    <form action="http://localhost:3000/api/register" method="POST" id="regForm">
+
+        <label>Laptop Name:</label>
+        <input type="text" name="laptopName" required>
+
+        <label>Serial Number:</label>
+        <input type="text" name="serialNumber" required>
+
+        <label>Owner Name:</label>
+        <input type="text" name="ownerName" required>
+
+        <label>Email:</label>
+        <input type="email" name="ownerEmail" required>
+
+        <label>Phone Number:</label>
+        <input type="text" name="ownerPhone" required>
+
+        <button type="submit">Register Laptop</button>
+    </form>
+</div>
+
+<script>
+document.getElementById("regForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const formData = new FormData(this);
+
+    const data = {
+        laptopName: formData.get("laptopName"),
+        serialNumber: formData.get("serialNumber"),
+        ownerName: formData.get("ownerName"),
+        ownerEmail: formData.get("ownerEmail"),
+        ownerPhone: formData.get("ownerPhone")
+    };
+
+    const response = await fetch("http://localhost:3000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    alert(result.message);
+});
+</script>
+
+</body>
+</html>
+

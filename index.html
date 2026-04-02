@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="manifest" href="manifest.json">
+    <title>Laptop Tracker App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Welcome to Laptop Tracker</h1>
+    <p>Protect your laptop from thieves. Register it and track it anytime.</p>
+
+    <a href="register.html" class="button">Register Laptop</a>
+    <a href="dashboard.html" class="button">Open Dashboard</a>
+</div>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("Service Worker Registered"))
+      .catch(err => console.log("SW error", err));
+  }
+</script>
+
+</body>
+</html>
+

@@ -1,104 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login - Laptop Tracker</title>
+<title>Login</title>
 </head>
-<body>
 
-<h2>Register</h2>
-<input type="text" id="regEmail" placeholder="Email"><br>
-<input type="password" id="regPassword" placeholder="Password"><br>
-<button onclick="register()">Register</button>
-
-<h2>Login</h2>
-<input type="text" id="loginEmail" placeholder="Email"><br>
-<input type="password" id="loginPassword" placeholder="Password"><br>
-<button onclick="login()">Login</button>
-
-<p id="msg"></p>
-
-<script>
-async function register(){
-    const email = regEmail.value;
-    const password = regPassword.value;
-
-    const res = await fetch("/registerUser", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({email, password})
-    });
-
-    const data = await res.json();
-    msg.innerText = data.message;
-}
-
-async function login(){
-    const email = loginEmail.value;
-    const password = loginPassword.value;
-
-    const res = await fetch("/loginUser", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({email, password})
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-    localStorage.setItem("userEmail", email);
-    window.location.href = "/dashboard.html";
-    } else {
-        msg.innerText = "Invalid login";
-    }
-}
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laptop Tracker - Login</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, button { display: block; margin: 10px 0; padding: 10px; width: 100%; max-width: 300px; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script>
-    const supabaseUrl = "https://ytalqhmarprgojenbbsn.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0YWxxaG1hcnByZ29qZW5iYnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2NjA0NDksImV4cCI6MjA4MDIzNjQ0OX0.Qr5noF-HkXo_VHd4gTr_PYUFeJUm8oFFQLdroRxtxdk";
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-  </script>
-</head>
 <body>
 
 <h2>Login</h2>
 
-<form id="loginForm">
-  <input type="email" id="email" placeholder="Email" required>
-  <input type="password" id="password" placeholder="Password" required>
+<form action="/login" method="POST">
+  <input type="email" name="email" placeholder="Email" required><br><br>
+  <input type="password" name="password" placeholder="Password" required><br><br>
   <button type="submit">Login</button>
 </form>
 
-<script>
-const form = document.getElementById("loginForm");
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password,
-  });
-
-  if (error) {
-    alert("Error: " + error.message);
-  } else {
-    alert("Login successful ✅");
-    window.location.href = "dashboard.html";
-  }
-});
-</script>
+<p>Don't have an account? <a href="/register.html">Register</a></p>
 
 </body>
 </html>

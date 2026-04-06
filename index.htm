@@ -1,0 +1,28 @@
+
+<script src="https://www.gstatic.com/firebasejs/9/..."></script>
+<script src="https://www.gstatic.com/firebasejs/9/..."></script>
+<script src="https://www.gstatic.com/firebasejs/9/..."></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    databaseURL: "YOUR_DATABASE_URL"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  firebase.database().ref('/test').set({
+    message: "Firebase is connected!"
+  }).then(() => {
+    console.log("Firebase connected successfully!");
+    alert("Firebase is connected successfully!");
+  }).catch((error) => {
+    console.error("Firebase connection error:", error);
+    alert("Firebase connection error! Check console.");
+  });
+</script>

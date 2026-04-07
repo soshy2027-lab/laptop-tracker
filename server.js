@@ -50,17 +50,22 @@ app.post("/registerUser", async (req, res) => {
 
 // Login User
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email, password });
+    const user = await User.findOne({ email, password });
 
-  if (user) {
-    res.redirect("/dashboard.html");
-  } else {
-    res.send("Invalid Login");
+    if (user) {
+      res.redirect("/dashboard.html");
+    } else {
+      res.send("Invalid login");
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.send("Server error");
   }
 });
-
 // Register Laptop
 app.post("/registerLaptop", async (req, res) => {
   const laptop = new Laptop(req.body);

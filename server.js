@@ -51,6 +51,8 @@ app.post("/registerUser", async (req, res) => {
 // Login User
 app.post("/login", async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ email, password });
@@ -62,8 +64,8 @@ app.post("/login", async (req, res) => {
     }
 
   } catch (error) {
-    console.log(error);
-    res.send("Server error");
+    console.log("LOGIN ERROR:", error);
+    res.send("Server error: " + error.message);
   }
 });
 // Register Laptop

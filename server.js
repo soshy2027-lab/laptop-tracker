@@ -49,25 +49,24 @@ app.post("/registerUser", async (req, res) => {
 });
 
 // Login User
-app.post("/login", async (req, res) => {
-  try {
-    console.log("BODY:", req.body);
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
 
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email, password });
-
-    if (user) {
-      res.redirect("/dashboard.html");
-    } else {
-      res.send("Invalid login");
-    }
-
-  } catch (error) {
-    console.log("LOGIN ERROR:", error);
-    res.send("Server error: " + error.message);
-  }
+  User.findOne({ email: email, password: password })
+    .then(user => {
+      if (user) {
+        res.redirect("/dashboard.html");
+      } else {
+        res.send("Invalid login");
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.send("Server error");
+    });
 });
+
 // Register Laptop
 app.post("/registerLaptop", async (req, res) => {
   const laptop = new Laptop(req.body);

@@ -1,114 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="manifest" href="manifest.json">
-    <title>Laptop Tracker App</title>
-    <link rel="stylesheet" href="styles.css">
+<title>Laptop Tracker</title>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>Welcome to Laptop Tracker</h1>
-    <p>Protect your laptop from thieves. Register it and track it anytime.</p>
+<h1>Welcome to Laptop Tracker</h1>
+<p>Protect your laptop from thieves.</p>
 
-    <a href="register.html" class="button">Register Laptop</a>
-    <a href="dashboard.html" class="button">Open Dashboard</a>
-</div>
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js")
-      .then(() => console.log("Service Worker Registered"))
-      .catch(err => console.log("SW error", err));
- }
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Laptop Tracker Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      background:#0f172a;
-      font-family: Arial, sans-serif;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      color:#fff;
-    }
-    .box {
-      background:#1e293b;
-      padding:20px;
-      border-radius:10px;
-      width:100%;
-      max-width:360px;
-    }
-    input, button {
-      width:100%;
-      padding:12px;
-      margin-top:10px;
-      border:none;
-      border-radius:6px;
-      font-size:16px;
-    }
-    button {
-      background:#22c55e;
-      color:#000;
-      font-weight:bold;
-      cursor:pointer;
-    }
-  </style>
-</head>
-<body>
-
-<div class="box">
-  <h2>🔐 Laptop Tracker Login</h2>
-
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-
- <button type="button" onclick="signup()">Create Account</button>
-<button type="button" onclick="login()">Login</button>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
-    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-  // 🔴 REPLACE WITH YOUR REAL FIREBASE CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyA5NVgdCKFNcjPCt_zn0bZL3UvnrA6Z260",
-    authDomain: "laptop-tracker-2026.firebasestorage.app",
-    projectId: "439339623776",
-    appId:"1:439339623776:web:47551f51755a54c4f06a05"
-};
-  
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  window.login = function () {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        window.location.href = "dashboard.html";
-      })
-      .catch(err => alert(err.message));
-  }
-
-  window.signup = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      window.location.href = "dashboard.html";
-    })
-    .catch(err => alert(err.message));
-}
-</script>
+<a href="/register.html">Register</a><br><br>
+<a href="/login.html">Login</a>
 
 </body>
 </html>
-

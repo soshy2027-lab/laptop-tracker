@@ -1,20 +1,21 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
 const path = require("path");
 
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
-// MongoDB connection (Render ENV)
+// MongoDB Connection (Render ENV)
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("✅ MongoDB Connected"))
 .catch(err => console.log("❌ MongoDB Error:", err));
 
-// ================= USER SCHEMA =================
+// ================= USER =================
 const userSchema = new mongoose.Schema({
   email: String,
   password: String
@@ -22,81 +23,63 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-// ================= LAPTOP SCHEMA =================
-const laptopSchema = new mongoose.Schema({
-  brand: String,
-  model: String,
-  serial: String,
-  processor: String,
-  ram: String,
-  storage: String,
-  owner: String,
-  status: { type: String, default: "safe" }
+// Register
+app.post("/registerUser", async (req, res) => {
+  try {
+    const user = new User(req.body);
+    await user.save();
+    res.redirect("/login.html");
+  } catch (err) {
+    res.send("Error registering user");
+  }
 });
 
-const Laptop = mongoose.model("Laptop", laptopSchema);
-
-// ================= ROUTES =================
-
-// Register User
-app.post("/registerUser", async (req, res) => {
+// Login (simple)
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const newUser = new User({ email, password });
-  await newUser.save();
+  const user = await User.findOne({ email, password });
 
-  res.send("User Registered");
-});
-
-// Login User
-app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-
-  if (email && password) {
+  if (user) {
     res.redirect("/dashboard.html");
   } else {
     res.send("Invalid login");
   }
 });
 
-app.post("/add-laptop", (req, res) => {
-  const { brand, model, serial, processor, ram, storage } = req.body;
-
-  console.log("Laptop saved:", req.body);
-
-  res.redirect("/dashboard.html");
+// ================= LAPTOP =================
+const laptopSchema = new mongoose.Schema({
+  brand: String,
+  model: String,
+  serial: String,
+  processor: String,
+  ram: String,
+  storage: String
 });
 
-// Register Laptop
-app.post("/registerLaptop", async (req, res) => {
-  const laptop = new Laptop(req.body);
-  await laptop.save();
+const Laptop = mongoose.model("Laptop", laptopSchema);
 
-  res.send("Laptop Registered Successfully");
+// Save Laptop
+app.post("/add-laptop", async (req, res) => {
+  try {
+    const laptop = new Laptop(req.body);
+    await laptop.save();
+    res.redirect("/dashboard.html");
+  } catch (err) {
+    console.log(err);
+    res.send("Error saving laptop");
+  }
 });
 
-// Get All Laptops
-app.get("/laptops", async (req, res) => {
+// Get Laptops (for display later)
+app.get("/get-laptops", async (req, res) => {
   const laptops = await Laptop.find();
   res.json(laptops);
 });
 
-// Mark as Stolen
-app.post("/markStolen/:id", async (req, res) => {
-  await Laptop.findByIdAndUpdate(req.params.id, { status: "stolen" });
-  res.send("Marked as stolen");
-});
-
-// Delete Laptop
-app.delete("/deleteLaptop/:id", async (req, res) => {
-  await Laptop.findByIdAndDelete(req.params.id);
-  res.send("Deleted");
-});
-
-// ================= START SERVER =================
+// ================= SERVER =================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

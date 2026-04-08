@@ -10,57 +10,43 @@
 
 <h2>Add Laptop</h2>
 
-<input id="brand" placeholder="Brand"><br><br>
-<input id="model" placeholder="Model"><br><br>
-<input id="serial" placeholder="Serial"><br><br>
-<input id="processor" placeholder="Processor"><br><br>
-<input id="ram" placeholder="RAM"><br><br>
-<input id="storage" placeholder="Storage"><br><br>
+<form action="/add-laptop" method="POST">
+  <input name="brand" placeholder="Brand"><br><br>
+  <input name="model" placeholder="Model"><br><br>
+  <input name="serial" placeholder="Serial"><br><br>
+  <input name="processor" placeholder="Processor"><br><br>
+  <input name="ram" placeholder="RAM"><br><br>
+  <input name="storage" placeholder="Storage"><br><br>
 
-<button onclick="saveLaptop()">Save Laptop</button>
+  <button type="submit">Save Laptop</button>
+</form>
 
 <hr>
 
 <h2>Your Laptops</h2>
-<ul id="list"></ul>
+
+<div id="laptopList"></div>
 
 <script>
+async function loadLaptops() {
+  const res = await fetch("/get-laptops");
+  const laptops = await res.json();
 
-const user = localStorage.getItem("userEmail");
+  const container = document.getElementById("laptopList");
+  container.innerHTML = "";
 
-async function saveLaptop(){
-    await fetch("/registerLaptop", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-            brand: brand.value,
-            model: model.value,
-            serial: serial.value,
-            processor: processor.value,
-            ram: ram.value,
-            storage: storage.value,
-            owner: user
-        })
-    });
-
-    loadLaptops();
-}
-
-async function loadLaptops(){
-    const res = await fetch("/laptops");
-    const data = await res.json();
-
-    list.innerHTML = "";
-
-    data
-    .filter(l => l.owner === user)
-    .forEach(l=>{
-        list.innerHTML += `<li>${l.brand} - ${l.serial}</li>`;
-    });
+  laptops.forEach(l => {
+    container.innerHTML += `
+      <div>
+        <p><b>${l.brand}</b> - ${l.model}</p>
+        <p>Serial: ${l.serial}</p>
+        <hr/>
+      </div>
+    `;
+  });
 }
 
 loadLaptops();
-
 </script>
 
 </body>

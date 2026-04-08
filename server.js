@@ -53,18 +53,11 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  User.findOne({ email: email, password: password })
-    .then(user => {
-      if (user) {
-        res.redirect("/dashboard.html");
-      } else {
-        res.send("Invalid login");
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.send("Server error");
-    });
+  if (email && password) {
+    res.redirect("/dashboard.html");
+  } else {
+    res.send("Invalid login");
+  }
 });
 
 // Register Laptop

@@ -60,6 +60,14 @@ app.post("/login", (req, res) => {
   }
 });
 
+app.post("/add-laptop", (req, res) => {
+  const { brand, model, serial, processor, ram, storage } = req.body;
+
+  console.log("Laptop saved:", req.body);
+
+  res.redirect("/dashboard.html");
+});
+
 // Register Laptop
 app.post("/registerLaptop", async (req, res) => {
   const laptop = new Laptop(req.body);

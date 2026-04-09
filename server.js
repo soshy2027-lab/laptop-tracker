@@ -1,90 +1,54 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const path = require("path");
 
 const app = express();
 
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
-// MongoDB Connection (Render ENV)
+// MongoDB
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(err => console.log("❌ MongoDB Error:", err));
+.then(()=>console.log("DB Connected"))
+.catch(err=>console.log(err));
 
-// ================= USER =================
-const userSchema = new mongoose.Schema({
+// USER
+const User = mongoose.model("User", {
   email: String,
   password: String
 });
 
-const User = mongoose.model("User", userSchema);
-
-// Register
-app.post("/registerUser", async (req, res) => {
-  try {
-    const user = new User(req.body);
-    await user.save();
-    res.redirect("/login.html");
-  } catch (err) {
-    res.send("Error registering user");
-  }
-});
-
-// Login (simple)
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = await User.findOne({ email, password });
-
-  if (user) {
-    res.redirect("/dashboard.html");
-  } else {
-    res.send("Invalid login");
-  }
-});
-
-// ================= LAPTOP =================
-const laptopSchema = new mongoose.Schema({
+// LAPTOP
+const Laptop = mongoose.model("Laptop", {
   brand: String,
   model: String,
-  serial: String,
-  processor: String,
-  ram: String,
-  storage: String
+  serial: String
 });
 
-const Laptop = mongoose.model("Laptop", laptopSchema);
+// Register
+app.post("/registerUser", async (req,res)=>{
+  await new User(req.body).save();
+  res.redirect("/login.html");
+});
+
+// Login
+app.post("/login", async (req,res)=>{
+  const user = await User.findOne(req.body);
+  if(user) res.redirect("/dashboard.html");
+  else res.send("Invalid");
+});
 
 // Save Laptop
-app.post("/add-laptop", async (req, res) => {
-  try {
-    const laptop = new Laptop(req.body);
-    await laptop.save();
-    res.redirect("/dashboard.html");
-  } catch (err) {
-    console.log(err);
-    res.send("Error saving laptop");
-  }
+app.post("/add-laptop", async (req,res)=>{
+  await new Laptop(req.body).save();
+  res.send("saved");
 });
 
-// Get Laptops (for display later)
-app.get("/get-laptops", async (req, res) => {
-  try {
-    const laptops = await Laptop.find();
-    res.json(laptops);
-  } catch (err) {
-    console.log(err);
-    res.json([]);
-  }
+// Get Laptops
+app.get("/get-laptops", async (req,res)=>{
+  const data = await Laptop.find();
+  res.json(data);
 });
 
-// ================= SERVER =================
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start
+app.listen(process.env.PORT || 3000);

@@ -1,52 +1,45 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Dashboard</title>
-</head>
-
 <body>
-
-<h1>💻 Laptop Dashboard</h1>
 
 <h2>Add Laptop</h2>
 
-<form action="/add-laptop" method="POST">
-  <input name="brand" placeholder="Brand"><br><br>
-  <input name="model" placeholder="Model"><br><br>
-  <input name="serial" placeholder="Serial"><br><br>
-  <input name="processor" placeholder="Processor"><br><br>
-  <input name="ram" placeholder="RAM"><br><br>
-  <input name="storage" placeholder="Storage"><br><br>
+<input id="brand" placeholder="Brand"><br><br>
+<input id="model" placeholder="Model"><br><br>
+<input id="serial" placeholder="Serial"><br><br>
 
-  <button type="submit">Save Laptop</button>
-</form>
+<button onclick="save()">Save</button>
 
 <hr>
 
-<h2>Your Laptops</h2>
-
-<div id="laptopList"></div>
+<h2>Saved Laptops</h2>
+<div id="list"></div>
 
 <script>
-async function loadLaptops() {
+async function save(){
+  await fetch("/add-laptop",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      brand:brand.value,
+      model:model.value,
+      serial:serial.value
+    })
+  });
+  load();
+}
+
+async function load(){
   const res = await fetch("/get-laptops");
-  const laptops = await res.json();
+  const data = await res.json();
 
-  const container = document.getElementById("laptopList");
-  container.innerHTML = "";
-
-  laptops.forEach(l => {
-    container.innerHTML += `
-      <div>
-        <p><b>${l.brand}</b> - ${l.model}</p>
-        <p>Serial: ${l.serial}</p>
-        <hr/>
-      </div>
-    `;
+  list.innerHTML="";
+  data.forEach(l=>{
+    list.innerHTML += `<p>${l.brand} - ${l.serial}</p>`;
   });
 }
 
-loadLaptops();
+load();
 </script>
 
 </body>

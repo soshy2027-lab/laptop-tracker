@@ -16,31 +16,47 @@
 <div id="list"></div>
 
 <script>
+
+const BASE_URL = window.location.origin;
+
 async function save(){
-  await fetch("/add-laptop",{
+  await fetch(BASE_URL + "/add-laptop",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
-      brand:brand.value,
-      model:model.value,
-      serial:serial.value
+      brand: document.getElementById("brand").value,
+      model: document.getElementById("model").value,
+      serial: document.getElementById("serial").value
     })
   });
 
-  load();
+  setTimeout(load, 1000);
 }
 
 async function load(){
-  const res = await fetch("/get-laptops");
-  const data = await res.json();
+  try{
+    const res = await fetch(BASE_URL + "/get-laptops");
+    const data = await res.json();
 
-  list.innerHTML="";
-  data.forEach(l=>{
-    list.innerHTML += `<p>${l.brand} - ${l.serial}</p>`;
-  });
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    if(data.length === 0){
+      list.innerHTML = "<p>No laptops yet</p>";
+      return;
+    }
+
+    data.forEach(l=>{
+      list.innerHTML += `<p>${l.brand} - ${l.model} - ${l.serial}</p>`;
+    });
+
+  }catch(e){
+    document.getElementById("list").innerHTML = "Error loading data";
+  }
 }
 
 load();
+
 </script>
 
 </body>

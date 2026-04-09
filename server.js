@@ -32,10 +32,27 @@ app.post("/registerUser", async (req,res)=>{
 });
 
 // Login
-app.post("/login", async (req,res)=>{
-  const user = await User.findOne(req.body);
-  if(user) res.redirect("/dashboard.html");
-  else res.send("Invalid");
+app.post("/login", async (req, res) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.send("User not found");
+    }
+
+    if (user.password === password) {
+      return res.redirect("/dashboard.html");
+    } else {
+      return res.send("Wrong password");
+    }
+
+  } catch (err) {
+    console.log(err);
+    res.send("Server error");
+  }
 });
 
 // Save Laptop

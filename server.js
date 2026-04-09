@@ -8,9 +8,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 // CONNECT DB
-mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("DB Connected"))
-.catch(err=>console.log(err));
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("DB Connected"))
+.catch(err => console.log("DB ERROR:", err));
 
 // USER
 const User = mongoose.model("User", {
@@ -51,9 +54,14 @@ app.post("/add-laptop", async (req,res)=>{
 });
 
 // GET LAPTOPS
-app.get("/get-laptops", async (req,res)=>{
-  const data = await Laptop.find();
-  res.json(data);
+app.get("/get-laptops", async (req, res) => {
+  try {
+    const data = await Laptop.find();
+    res.json(data);
+  } catch (err) {
+    console.log("FETCH ERROR:", err);
+    res.send("error");
+  }
 });
 
 app.listen(process.env.PORT || 3000);

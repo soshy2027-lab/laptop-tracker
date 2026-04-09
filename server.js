@@ -73,8 +73,13 @@ app.post("/add-laptop", async (req, res) => {
 
 // Get Laptops (for display later)
 app.get("/get-laptops", async (req, res) => {
-  const laptops = await Laptop.find();
-  res.json(laptops);
+  try {
+    const laptops = await Laptop.find();
+    res.json(laptops);
+  } catch (err) {
+    console.log(err);
+    res.json([]);
+  }
 });
 
 // ================= SERVER =================

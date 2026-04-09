@@ -39,9 +39,23 @@ app.post("/login", async (req,res)=>{
 });
 
 // Save Laptop
-app.post("/add-laptop", async (req,res)=>{
-  await new Laptop(req.body).save();
-  res.send("saved");
+app.post("/add-laptop", async (req, res) => {
+  try {
+    console.log("DATA:", req.body);
+
+    const laptop = new Laptop({
+      brand: req.body.brand,
+      model: req.body.model,
+      serial: req.body.serial
+    });
+
+    await laptop.save();
+
+    res.send("saved");
+  } catch (err) {
+    console.log("ERROR:", err);
+    res.send("error");
+  }
 });
 
 // Get Laptops

@@ -7,61 +7,52 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
-// CONNECT DB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+// ✅ CONNECT TO MONGODB (STRICT + SAFE)
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+  console.log("✅ MongoDB Connected");
 })
-.then(() => console.log("DB Connected"))
-.catch(err => console.log("DB ERROR:", err));
-
-// USER
-const User = mongoose.model("User", {
-  email: String,
-  password: String
+.catch((err) => {
+  console.log("❌ MongoDB ERROR:", err.message);
 });
 
-// LAPTOP
+// ✅ SCHEMA
 const Laptop = mongoose.model("Laptop", {
   brand: String,
   model: String,
   serial: String
 });
 
-// REGISTER
-app.post("/registerUser", async (req,res)=>{
-  await new User(req.body).save();
-  res.redirect("/login.html");
-});
+// ✅ SAVE LAPTOP
+app.post("/add-laptop", async (req, res) => {
+  try {
+    const { brand, model, serial } = req.body;
 
-// LOGIN (NO ERROR VERSION)
-app.post("/login", (req,res)=>{
-  if(req.body.email && req.body.password){
-    res.redirect("/dashboard.html");
-  } else {
-    res.send("Login failed");
-  }
-});
+    if (!brand || !model || !serial) {
+      return res.status(400).send("Missing fields");
+    }
 
-// SAVE LAPTOP
-app.post("/add-laptop", async (req,res)=>{
-  try{
-    await new Laptop(req.body).save();
+    const newLaptop = new Laptop({ brand, model, serial });
+    await newLaptop.save();
+
     res.send("saved");
-  }catch(e){
-    res.send("error");
+  } catch (err) {
+    console.log("SAVE ERROR:", err.message);
+    res.status(500).send("error");
   }
 });
 
-// GET LAPTOPS
+// ✅ GET LAPTOPS
 app.get("/get-laptops", async (req, res) => {
   try {
-    const data = await Laptop.find();
-    res.json(data);
+    const laptops = await Laptop.find();
+    res.json(laptops);
   } catch (err) {
-    console.log("FETCH ERROR:", err);
-    res.send("error");
+    console.log("FETCH ERROR:", err.message);
+    res.status(500).send("error");
   }
 });
 
-app.listen(process.env.PORT || 3000);
+// ✅ START SERVER
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running"));

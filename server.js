@@ -7,52 +7,74 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
-// ✅ CONNECT TO MONGODB (STRICT + SAFE)
+/* ===== DATABASE ===== */
 mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("✅ MongoDB Connected");
-})
-.catch((err) => {
-  console.log("❌ MongoDB ERROR:", err.message);
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log("DB Error:", err.message));
+
+/* ===== MODELS ===== */
+const User = mongoose.model("User", {
+  email: String,
+  password: String
 });
 
-// ✅ SCHEMA
 const Laptop = mongoose.model("Laptop", {
   brand: String,
   model: String,
   serial: String
 });
 
-// ✅ SAVE LAPTOP
+/* ===== ROUTES ===== */
+
+// REGISTER
+app.post("/registerUser", async (req, res) => {
+  try {
+    await new User(req.body).save();
+    res.redirect("/login.html");
+  } catch (err) {
+    res.send("error");
+  }
+});
+
+// LOGIN (IMPORTANT FIX)
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) return res.send("User not found");
+
+    if (user.password !== password) return res.send("Wrong password");
+
+    res.redirect("/dashboard.html");
+
+  } catch (err) {
+    console.log(err);
+    res.send("error");
+  }
+});
+
+// SAVE LAPTOP
 app.post("/add-laptop", async (req, res) => {
   try {
-    const { brand, model, serial } = req.body;
-
-    if (!brand || !model || !serial) {
-      return res.status(400).send("Missing fields");
-    }
-
-    const newLaptop = new Laptop({ brand, model, serial });
-    await newLaptop.save();
-
+    await new Laptop(req.body).save();
     res.send("saved");
   } catch (err) {
-    console.log("SAVE ERROR:", err.message);
-    res.status(500).send("error");
+    res.send("error");
   }
 });
 
-// ✅ GET LAPTOPS
+// GET LAPTOPS
 app.get("/get-laptops", async (req, res) => {
   try {
-    const laptops = await Laptop.find();
-    res.json(laptops);
+    const data = await Laptop.find();
+    res.json(data);
   } catch (err) {
-    console.log("FETCH ERROR:", err.message);
-    res.status(500).send("error");
+    res.send("error");
   }
 });
 
-// ✅ START SERVER
+/* ===== START SERVER ===== */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running"));

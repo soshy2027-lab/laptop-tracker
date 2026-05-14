@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laptop Tracker - Subscription</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    :root { --primary:#2563eb; --success:#10b981; --danger:#ef4444; --bg:#f3f4f6; --card:#fff; --text:#1f2937; --border:#e5e7eb; }
+    [data-theme="dark"] { --bg:#121212; --card:#1e1e1e; --text:#e0e0e0; --border:#333; }
+    body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; min-height:100vh; display:flex; align-items:center; justify-content:center; transition:0.3s; }
+    .wrap { max-width:500px; width:100%; }
+    .card { background:var(--card); padding:25px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:20px; text-align:center; }
+    h1 { margin:0 0 10px; font-size:1.5rem; color:var(--primary); }
+    p { margin:5px 0; color:#6b7280; }
+    .status-badge { display:inline-block; padding:6px 12px; border-radius:20px; font-weight:600; font-size:0.9rem; margin:10px 0; }
+    .trial { background:#dbeafe; color:#1e40af; }
+    .active { background:#dcfce7; color:#15803d; }
+    .expired { background:#fee2e2; color:#b91c1c; }
+    .price { font-size:2rem; font-weight:bold; margin:15px 0; color:var(--text); }
+    .btn { display:block; width:100%; padding:14px; border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin:10px 0; transition:0.2s; }
+    .btn-mpesa { background:#4caf50; color:#fff; }
+    .btn-paypal { background:#0070ba; color:#fff; }
+    .btn-visa { background:#1a1f71; color:#fff; }
+    .btn:hover { opacity:0.9; transform:translateY(-1px); }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-back { background:var(--primary); color:#fff; margin-top:15px; }
+    .note { font-size:0.85rem; color:#6b7280; margin-top:15px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>💎 Your Subscription</h1>
+      <p>Manage your plan & billing</p>
+      <div id="status-container"></div>
+      
+      <div id="pricing-card" class="hidden">
+        <div class="price">2,500 KSH</div>
+        <p>Valid for <strong>4 months</strong></p>
+        <p class="note">Choose your preferred payment method:</p>
+        <button class="btn btn-mpesa" onclick="simulatePay('M-Pesa')"> Pay with M-Pesa Paybill</button>
+        <button class="btn btn-paypal" onclick="simulatePay('PayPal')">️ Pay with PayPal</button>
+        <button class="btn btn-visa" onclick="simulatePay('Visa/Mastercard')">💳 Pay with Visa/Mastercard</button>
+      </div>
+    </div>
+    <button class="btn btn-back" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if(!token) window.location.href='/';
+    const auth = { 'Authorization': `Bearer ${token}` };
+
+    async function loadStatus() {
+      const res = await fetch('/api/subscription/status', { headers: auth });
+      if(!res.ok) return window.location.href='/';
+      const data = await res.json();
+      const container = document.getElementById('status-container');
+      const pricing = document.getElementById('pricing-card');
+
+      if(data.status === 'trial') {
+        container.innerHTML = `<span class="status-badge trial">🟢 Free Trial</span><p>${data.daysLeft} days remaining</p>`;
+        pricing.classList.add('hidden');
+      } else if(data.status === 'active') {
+        const date = new Date(data.expires).toLocaleDateString();
+        container.innerHTML = `<span class="status-badge active">✅ Active Subscription</span><p>Renews on ${date}</p>`;
+        pricing.classList.add('hidden');
+      } else {
+        container.innerHTML = `<span class="status-badge expired">️ Subscription Expired</span><p>Your access is locked. Please renew to continue.</p>`;
+        pricing.classList.remove('hidden');
+      }
+    }
+
+    window.simulatePay = async(method) => {
+      if(!confirm(`Proceed with ${method} payment of 2,500 KSH?`)) return;
+      const btn = event.target;
+      btn.disabled = true; btn.textContent = 'Processing...';
+      
+      try {
+        const res = await fetch('/api/subscription/activate', {
+          method: 'POST', headers: {...auth, 'Content-Type':'application/json'},
+          body: JSON.stringify({ method })
+        });
+        if(res.ok) {
+          alert('✅ Payment successful! Subscription activated for 4 months.');
+          window.location.href='/dashboard';
+        } else { alert('Payment failed. Please try again.'); }
+      } catch(e) { alert('Connection error.'); }
+      btn.disabled = false; btn.textContent = `Pay with ${method}`;
+    };
+
+    loadStatus();
+  </script>
+</body>
+</html>

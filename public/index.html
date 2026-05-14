@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laptop Tracker - Login</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    :root { --primary:#2563eb; --bg:#f3f4f6; --card:#fff; --text:#1f2937; --border:#e5e7eb; }
+    body { font-family:'Segoe UI',Tahoma,sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .box { background:var(--card); padding:30px; border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:100%; max-width:400px; }
+    .logo { text-align:center; margin-bottom:20px; }
+    .logo img { height:70px; width:70px; object-fit:contain; }
+    .logo h1 { margin:10px 0 5px; color:var(--primary); font-size:1.6rem; }
+    .logo p { margin:0; color:#6b7280; font-size:0.85rem; }
+    .input-group { margin-bottom:15px; position:relative; }
+    label { display:block; margin-bottom:5px; font-weight:500; font-size:0.9rem; color:var(--text); }
+    input { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; box-sizing:border-box; }
+    input:focus { outline:none; border-color:var(--primary); }
+    .toggle-btn { position:absolute; right:10px; top:32px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:1rem; }
+    .btn { width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:10px; }
+    .btn:hover { background:#1d4ed8; }
+    .links { text-align:center; margin-top:15px; font-size:0.9rem; color:#6b7280; }
+    .links a { color:var(--primary); text-decoration:none; font-weight:600; cursor:pointer; }
+    .forgot { text-align:right; font-size:0.8rem; margin:-10px 0 10px; }
+    .forgot a { color:#6b7280; text-decoration:none; cursor:pointer; }
+    .error { color:#dc2626; background:#fef2f2; padding:10px; border-radius:6px; text-align:center; margin-bottom:15px; display:none; font-size:0.9rem; }
+    .copy { text-align:center; margin-top:25px; font-size:0.75rem; color:#9ca3af; border-top:1px solid #f3f4f6; padding-top:15px; }
+    .hidden { display:none; }
+    .divider { display:flex; align-items:center; margin:20px 0; color:#9ca3af; font-size:0.85rem; }
+    .divider::before, .divider::after { content:""; flex:1; border-bottom:1px solid #e5e7eb; }
+    .divider::before { margin-right:10px; }
+    .divider::after { margin-left:10px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">
+      <img src="/logo.png" alt="Logo">
+      <h1>Laptop Tracker</h1>
+      <p>Track and manage your laptops</p>
+    </div>
+
+    <div id="errorMsg" class="error"></div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password">
+        <button class="toggle-btn" onclick="togglePass('loginPassword', this)">👁️</button>
+      </div>
+      <div class="forgot"><a onclick="alert('Contact admin to reset password')">Forgot Password?</a></div>
+      <button class="btn" onclick="login()">Login</button>
+      
+      <div class="divider">OR</div>
+      
+      <!-- GOOGLE BUTTON -->
+      <div id="g_id_onload"
+           data-client_id="725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="outline"
+           data-text="sign_in_with"
+           data-shape="rectangular"
+           data-logo_alignment="left"
+           style="width:100%">
+      </div>
+
+      <div class="links">Don't have an account? <a onclick="switchForm('register')">Register here</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerForm" class="hidden">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Enter your name">
+      </div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="Enter your email">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Create a password">
+        <button class="toggle-btn" onclick="togglePass('regPassword', this)">👁️</button>
+      </div>
+      <button class="btn" onclick="register()">Register</button>
+      <div class="links">Already have an account? <a onclick="switchForm('login')">Login here</a></div>
+    </div>
+
+    <div class="copy">&copy; 2026 All rights reserved by Laptop-Tracker</div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    window.togglePass = (id, btn) => {
+      const inp = document.getElementById(id);
+      if(inp.type === "password") { inp.type = "text"; btn.textContent = "🙈"; }
+      else { inp.type = "password"; btn.textContent = "👁️"; }
+    };
+
+    window.switchForm = (type) => {
+      document.getElementById('loginForm').classList.toggle('hidden', type !== 'login');
+      document.getElementById('registerForm').classList.toggle('hidden', type !== 'register');
+      document.getElementById('errorMsg').style.display = 'none';
+    };
+
+    window.showError = (msg) => {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg; el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    };
+
+    window.login = async () => {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      if(!email || !password) return showError('Please fill all fields');
+      try {
+        const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password}) });
+        const data = await res.json();
+        if(res.ok) { localStorage.setItem('token', data.token); window.location.href='/dashboard'; }
+        else showError(data.error || 'Login failed');
+      } catch(e) { showError('Connection error'); }
+    };
+
+    window.register = async () => {
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      if(!name || !email || !password) return showError('Please fill all fields');
+      try {
+        const res = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, email, password}) });
+        const data = await res.json();
+        if(res.ok) { localStorage.setItem('token', data.token); window.location.href='/dashboard'; }
+        else showError(data.error || 'Registration failed');
+      } catch(e) { showError('Connection error'); }
+    };
+
+    // GOOGLE LOGIN CALLBACK
+    window.handleGoogleLogin = async (response) => {
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential })
+        });
+        const data = await res.json();
+        if(res.ok) {
+          localStorage.setItem('token', data.token);
+          window.location.href='/dashboard';
+        } else {
+          showError(data.error || 'Google login failed');
+        }
+      } catch(e) { showError('Google connection error'); }
+    };
+
+    if(localStorage.getItem('token')) window.location.href='/dashboard';
+  </script>
+</body>
+</html>

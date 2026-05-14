@@ -1,0 +1,51 @@
+{
+  "users": [
+    {
+      "id": "1778013834532",
+      "name": "Moses A kinda",
+      "email": "mosesalinda4@gmail.com",
+      "password": "232kenya "
+    },
+    {
+      "id": "1778194502472",
+      "name": "Admin",
+      "email": "admin@laptoptracker.com",
+      "password": "admin232",
+      "role": "user"
+    },
+    {
+      "id": "1778197479548",
+      "name": "Juma",
+      "email": "jumadaisy@gmail.com",
+      "password": "123456",
+      "role": "user",
+      "trialEndDate": "2026-05-28T23:44:39.542Z",
+      "isSubscribed": false,
+      "subscriptionExpiryDate": null
+    }
+  ],
+  "laptops": [
+    {
+      "id": "1778017013629",
+      "user": "1778013834532",
+      "brand": "Hp",
+      "model": "EliteBook 840 G5   ",
+      "serialNumber": "TEST-12345   ",
+      "ram": "8 GB    ",
+      "storage": "256 GB   ",
+      "status": "Active",
+      "notes": "Yest"
+    },
+    {
+      "id": "1778110454722",
+      "user": "1778013834532",
+      "brand": "HP  ",
+      "model": "EliteBook 840 G5    ",
+      "serialNumber": "TEST-12345    ",
+      "ram": "8 GB     ",
+      "storage": "256 GB    ",
+      "status": "Active",
+      "notes": ""
+    }
+  ]
+}

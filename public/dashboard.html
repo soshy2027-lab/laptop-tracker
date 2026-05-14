@@ -1,33 +1,268 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Laptop Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laptop Tracker Dashboard</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    :root { --primary:#2563eb; --danger:#dc2626; --bg:#f3f4f6; --card:#fff; --text:#1f2937; --light:#6b7280; --border:#e5e7eb; --stat-blue-bg:#e0f2fe; --stat-blue-text:#0369a1; --stat-green-bg:#dcfce7; --stat-green-text:#15803d; --stat-red-bg:#fee2e2; --stat-red-text:#b91c1c; }
+    [data-theme="dark"] { --bg:#121212; --card:#1e1e1e; --text:#e0e0e0; --light:#a0a0a0; --border:#333; --stat-blue-bg:#1e3a8a; --stat-blue-text:#93c5fd; --stat-green-bg:#14532d; --stat-green-text:#4ade80; --stat-red-bg:#7f1d1d; --stat-red-text:#f87171; }
+    body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; transition:background 0.3s, color 0.3s; }
+    .wrap { max-width:1000px; margin:0 auto; }
+    .header { display:flex; align-items:center; justify-content:space-between; background:var(--card); padding:15px 20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+    .logo-area { display:flex; align-items:center; gap:12px; }
+    .logo-area img { height:45px; width:45px; object-fit:contain; }
+    .logo-area h1 { margin:0; font-size:1.4rem; color:var(--primary); }
+    .btn-out { background:#374151; color:#fff; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; }
+    .btn-theme { background:none; border:none; font-size:1.5rem; cursor:pointer; padding:5px; }
+    .btn-demo { background:#f59e0b; color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; }
+    .stats { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+    .stat { flex:1; min-width:100px; padding:15px; border-radius:12px; text-align:center; transition:background 0.3s, color 0.3s; }
+    .stat h3 { margin:0; font-size:0.9rem; }
+    .stat p { font-size:1.8rem; font-weight:bold; margin:5px 0 0; }
+    .s-blue { background:var(--stat-blue-bg); color:var(--stat-blue-text); }
+    .s-green { background:var(--stat-green-bg); color:var(--stat-green-text); }
+    .s-red { background:var(--stat-red-bg); color:var(--stat-red-text); }
+    .card { background:var(--card); padding:25px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px; transition:background 0.3s; }
+    .card h2 { margin:0 0 15px; font-size:1.2rem; border-bottom:2px solid var(--border); padding-bottom:10px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+    input,select { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background:var(--card); color:var(--text); }
+    input:focus,select:focus { outline:none; border-color:var(--primary); }
+    .full { grid-column:1/-1; }
+    .btn-add { background:var(--primary); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:12px; }
+    .search-row { display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; }
+    .search { flex:1; min-width:150px; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; box-sizing:border-box; }
+    .btn-export { background:#10b981; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; white-space:nowrap; }
+    .btn-sub { background:#f59e0b; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+    th,td { padding:12px 10px; text-align:left; border-bottom:1px solid var(--border); }
+    th { background:var(--bg); font-weight:600; color:var(--light); }
+    .btn-del { background:var(--danger); color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; }
+    .btn-edit { background:#f59e0b; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
+    #msg { color:#10b981; font-weight:bold; margin-top:10px; min-height:20px; }
+    .modal, .video-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center; }
+    .modal-box, .video-box { background:var(--card); padding:20px; border-radius:12px; width:90%; max-width:400px; color:var(--text); text-align:center; }
+    .video-box { max-width:700px; }
+    .modal-box h3 { margin:0 0 15px; color:var(--primary); }
+    .modal-box input,.modal-box select { margin-bottom:10px; }
+    .btn-save { width:100%; padding:10px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:8px; }
+    .btn-close { width:100%; padding:10px; background:#ef4444; color:#fff; border:none; border-radius:8px; cursor:pointer; }
+    .close-video { position:absolute; top:20px; right:20px; color:#fff; font-size:2rem; cursor:pointer; }
+    @media(max-width:600px){ .stats{flex-direction:column;} }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo-area"><img src="/logo.png" alt="Logo"><h1>Laptop Tracker</h1></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn-demo" onclick="openVideo()">🎥 Watch Demo</button>
+        <button class="btn-sub" onclick="window.location.href='/subscription'">💎 Subscription</button>
+        <button id="themeToggle" class="btn-theme" onclick="toggleTheme()">🌙</button>
+        <button class="btn-out" onclick="logout()">Logout</button>
+      </div>
+    </div>
 
-<h2>Laptop Registration</h2>
+    <div class="stats">
+      <div class="stat s-blue"><h3>Total</h3><p id="st-tot">0</p></div>
+      <div class="stat s-green"><h3>Active</h3><p id="st-act">0</p></div>
+      <div class="stat s-red"><h3>Repair</h3><p id="st-rep">0</p></div>
+    </div>
 
-<form>
-    <label>Laptop Brand</label><br>
-    <input type="text" placeholder="HP"><br><br>
+    <div class="card">
+      <h2>Add New Laptop</h2>
+      <form id="addForm">
+        <div class="grid">
+          <input type="text" id="brand" placeholder="Brand" required>
+          <input type="text" id="model" placeholder="Model" required>
+          <input type="text" id="serial" placeholder="Serial Number" required>
+          <input type="text" id="ram" placeholder="RAM" required>
+          <input type="text" id="storage" placeholder="Storage" required>
+          <select id="status"><option>Active</option><option>In Repair</option><option>Retired</option></select>
+          <input type="text" id="notes" placeholder="Notes (optional)" class="full">
+        </div>
+        <button type="submit" class="btn-add">Add Laptop</button>
+      </form>
+      <p id="msg"></p>
+    </div>
 
-    <label>Model</label><br>
-    <input type="text" placeholder="Latitude 5420"><br><br>
+    <div class="card">
+      <h2>My Laptops</h2>
+      <div class="search-row">
+        <input type="text" class="search" id="searchBox" placeholder=" Search..." onkeyup="filterTable()">
+        <button onclick="exportCSV()" class="btn-export">📥 Export CSV</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Brand</th><th>Model</th><th>RAM</th><th>Storage</th><th>Serial</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    <label>Serial Number</label><br>
-    <input type="text" placeholder="DL5420-KE-23901"><br><br>
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-box">
+      <h3>Edit Laptop</h3>
+      <input type="text" id="e-brand" placeholder="Brand">
+      <input type="text" id="e-model" placeholder="Model">
+      <input type="text" id="e-serial" placeholder="Serial">
+      <input type="text" id="e-ram" placeholder="RAM">
+      <input type="text" id="e-storage" placeholder="Storage">
+      <select id="e-status"><option>Active</option><option>In Repair</option><option>Retired</option></select>
+      <button class="btn-save" id="saveBtn" onclick="saveEdit()">Save Changes</button>
+      <button class="btn-close" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
 
-    <label>Processor</label><br>
-    <input type="text" placeholder="Intel Core i5"><br><br>
+    <!-- Video Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="close-video" onclick="closeVideo()">×</div>
+    <div class="video-box">
+      <h3 style="margin-bottom:10px;">🛡️ Why Use Laptop Tracker?</h3>
+      <p style="margin-bottom:15px; color:#666;">Learn how we help recover lost devices.</p>
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+        <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" 
+          src="https://www.youtube.com/embed/R807P2O5xGQ" 
+          title="Demo Video" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+      <p style="margin-top:10px; font-size:0.85rem;">Replace the video link with your own when ready!</p>
+    </div>
+  </div>
 
-    <label>RAM</label><br>
-    <input type="text" placeholder="8GB"><br><br>
+  <script>
+    // SUBSCRIPTION CHECK
+    (async function checkSubscription() {
+      const token = localStorage.getItem('token');
+      if(!token) return window.location.href='/';
+      const auth = { 'Authorization': `Bearer ${token}` };
+      try {
+        const res = await fetch('/api/subscription/status', { headers: auth });
+        const data = await res.json();
+        if(data.status === 'expired') window.location.href = '/subscription';
+      } catch(e) {}
+    })();
 
-    <label>Storage</label><br>
-    <input type="text" placeholder="256GB"><br><br>
+    // VIDEO MODAL LOGIC
+    window.openVideo = () => document.getElementById('videoModal').style.display = 'flex';
+    window.closeVideo = () => {
+      document.getElementById('videoModal').style.display = 'none';
+      // Stop video playing when closed
+      const iframe = document.querySelector('.video-box iframe');
+      const src = iframe.src;
+      iframe.src = src;
+    };
 
-    <button type="submit">Submit</button>
-</form>
+    const token = localStorage.getItem('token');
+    const auth = { 'Authorization': `Bearer ${token}` };
+    let laptops = [];
 
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', savedTheme);
+    document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    window.toggleTheme = () => {
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    };
+
+    async function loadData() {
+      const res = await fetch('/api/laptops', { headers: auth });
+      if(!res.ok) return logout();
+      laptops = await res.json();
+      renderTable();
+      updateStats();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      if(laptops.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#666;padding:20px;">No laptops yet.</td></tr>';
+        return;
+      }
+      laptops.forEach(l => {
+        tbody.innerHTML += `<tr><td><strong>${l.brand||''}</strong></td><td>${l.model||''}</td><td>${l.ram||''}</td><td>${l.storage||''}</td><td>${l.serialNumber||''}</td><td style="color:${l.status==='Active'?'green':l.status==='In Repair'?'orange':'red'}">${l.status||''}</td><td><button class="btn-edit" onclick="openEdit('${l.id}')">Edit</button><button class="btn-del" onclick="deleteItem('${l.id}')">Delete</button></td></tr>`;
+      });
+    }
+
+    function updateStats() {
+      const t1 = document.getElementById('st-tot');
+      const t2 = document.getElementById('st-act');
+      const t3 = document.getElementById('st-rep');
+      if(t1) t1.textContent = laptops.length;
+      if(t2) t2.textContent = laptops.filter(x=>x.status==='Active').length;
+      if(t3) t3.textContent = laptops.filter(x=>x.status==='In Repair').length;
+    }
+
+    document.getElementById('addForm').onsubmit = async(e) => {
+      e.preventDefault();
+      const data = { brand: document.getElementById('brand').value, model: document.getElementById('model').value, serialNumber: document.getElementById('serial').value, ram: document.getElementById('ram').value, storage: document.getElementById('storage').value, status: document.getElementById('status').value, notes: document.getElementById('notes').value };
+      const res = await fetch('/api/laptops', { method:'POST', headers:{...auth,'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      if(res.ok) {
+        document.getElementById('msg').textContent = '✅ Added!';
+        setTimeout(()=>document.getElementById('msg').textContent='', 3000);
+        e.target.reset();
+        loadData();
+      } else alert('Failed to add');
+    };
+
+    window.deleteItem = async(id) => {
+      if(!confirm('Delete this laptop?')) return;
+      try { const res = await fetch(`/api/laptops/${id}`, { method:'DELETE', headers:auth }); if(res.ok) loadData(); else alert('Failed to delete'); }
+      catch(err) { alert('Error: '+err.message); }
+    };
+
+    window.openEdit = (id) => {
+      const l = laptops.find(x=>x.id===id); if(!l) return;
+      document.getElementById('e-brand').value = l.brand||'';
+      document.getElementById('e-model').value = l.model||'';
+      document.getElementById('e-serial').value = l.serialNumber||'';
+      document.getElementById('e-ram').value = l.ram||'';
+      document.getElementById('e-storage').value = l.storage||'';
+      document.getElementById('e-status').value = l.status||'Active';
+      document.getElementById('saveBtn').dataset.id = id;
+      document.getElementById('editModal').style.display = 'flex';
+    };
+
+    window.saveEdit = async() => {
+      const id = document.getElementById('saveBtn').dataset.id;
+      const data = { brand: document.getElementById('e-brand').value, model: document.getElementById('e-model').value, serialNumber: document.getElementById('e-serial').value, ram: document.getElementById('e-ram').value, storage: document.getElementById('e-storage').value, status: document.getElementById('e-status').value };
+      const res = await fetch(`/api/laptops/${id}`, { method:'PUT', headers:{...auth,'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      if(res.ok) { document.getElementById('editModal').style.display='none'; loadData(); } else alert('Failed to update');
+    };
+
+    window.filterTable = () => {
+      const q = document.getElementById('searchBox').value.toLowerCase();
+      document.querySelectorAll('#tbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    };
+
+    window.exportCSV = () => {
+      if (laptops.length === 0) return alert("No data to export!");
+      let csvContent = "text/csv;charset=utf-8,Brand,Model,Serial Number,RAM,Storage,Status,Notes\n";
+      laptops.forEach(l => {
+        let row = [l.brand||"",l.model||"",l.serialNumber||"",l.ram||"",l.storage||"",l.status||"",l.notes||""].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
+        csvContent += row + "\n";
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "laptop_tracker_export.csv");
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    };
+
+    window.logout = () => { localStorage.removeItem('token'); window.location.href='/'; };
+    loadData();
+  </script>
 </body>
 </html>

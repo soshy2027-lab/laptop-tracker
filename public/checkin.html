@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Laptop Check-In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .box { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; max-width: 500px; margin: 0 auto; backdrop-filter: blur(10px); }
+    h1 { margin: 0 0 20px; }
+    .status { font-size: 1.2rem; margin: 20px 0; }
+    .success { color: #10b981; font-weight: bold; }
+    .error { color: #f87171; }
+    input { padding: 12px; width: 80%; margin: 10px 0; border-radius: 8px; border: none; text-align: center; font-size: 1.1rem; }
+    button { padding: 15px 30px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-top: 10px; font-weight: bold; }
+    button:hover { background: #059669; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>💻 Laptop Check-In</h1>
+    <p>Enter your laptop ID to report location</p>
+    
+    <input type="text" id="laptopId" placeholder="Paste Laptop ID here">
+    <br>
+    <button onclick="checkIn()">📍 Check In Now</button>
+    
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function checkIn() {
+      const id = document.getElementById('laptopId').value;
+      if (!id) return alert('Please enter Laptop ID');
+      
+      const result = document.getElementById('result');
+      result.innerHTML = '<p> Sending location...</p>';
+      
+      try {
+        const res = await fetch(`/api/laptops/${id}/checkin`);
+        const data = await res.json();
+        
+        if (res.ok) {
+          result.innerHTML = `
+            <div class="success">
+              <p>✅ Success!</p>
+              <p>Location sent.</p>
+            </div>
+          `;
+        } else {
+          result.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+        }
+      } catch (err) {
+        result.innerHTML = `<div class="error">❌ Network Error</div>`;
+      }
+    }
+
+    // Auto-checkin if ID is in URL (e.g. ?id=123)
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoId = urlParams.get('id');
+    if (autoId) {
+      document.getElementById('laptopId').value = autoId;
+      checkIn();
+      setInterval(checkIn, 5 * 60 * 1000); // Auto-checkin every 5 mins
+    }
+  </script>
+</body>
+</html>

@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const GOOGLE_CLIENT_ID = "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com";
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-// JSON DATABASE (Working Version!)
+// JSON DATABASE
 const DB_FILE = './data.json';
 const loadDB = () => {
   try { return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); }
@@ -143,8 +143,18 @@ const checkSub = (req, res, next) => {
 
 app.post('/api/laptops', protect, checkSub, (req, res) => {
   const db = loadDB();
-  const laptop = { id: Date.now().toString(), user: req.user.id, ...req.body, status: req.body.status || 'Active', stolen: false };
-  db.laptops.push(laptop); saveDB(db);
+  const laptop = { 
+    id: Date.now().toString(), 
+    user: req.user.id, 
+    ...req.body, 
+    status: req.body.status || 'Active', 
+    stolen: false,
+    lastIpAddress: null,
+    lastLocation: null,
+    lastSeen: null
+  };
+  db.laptops.push(laptop); 
+  saveDB(db);
   res.status(201).json(laptop);
 });
 
@@ -156,7 +166,8 @@ app.get('/api/laptops', protect, (req, res) => {
 app.delete('/api/laptops/:id', protect, (req, res) => {
   const db = loadDB();
   db.laptops = db.laptops.filter(l => !(l.id === req.params.id && l.user === req.user.id));
-  saveDB(db); res.json({ message: 'Deleted' });
+  saveDB(db); 
+  res.json({ message: 'Deleted' });
 });
 
 app.put('/api/laptops/:id', protect, checkSub, (req, res) => {
@@ -164,17 +175,107 @@ app.put('/api/laptops/:id', protect, checkSub, (req, res) => {
   const idx = db.laptops.findIndex(l => l.id === req.params.id && l.user === req.user.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   db.laptops[idx] = { ...db.laptops[idx], ...req.body };
-  saveDB(db); res.json(db.laptops[idx]);
+  saveDB(db); 
+  res.json(db.laptops[idx]);
 });
 
+// TRACKING ENDPOINTS
+
+// Laptop check-in (get location from IP)
+app.get('/api/laptops/:id/checkin', async (req, res) => {
+  try {
+    const db = loadDB();
+    const laptop = db.laptops.find(l => l.id === req.params.id);
+    if (!laptop) return res.status(404).json({ error: 'Laptop not found' });
+    
+    // Get IP from request
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+    
+    // Get location from IP using free API
+    try {
+      const locationRes = await fetch(`http://ip-api.com/json/${ip}`);
+      const location = await locationRes.json();
+      
+      if (location.status === 'success') {
+        // Update laptop with location
+        const idx = db.laptops.findIndex(l => l.id === req.params.id);
+        db.laptops[idx].lastIpAddress = ip;
+        db.laptops[idx].lastLocation = {
+          city: location.city,
+          region: location.regionName,
+          country: location.country,
+          latitude: location.lat,
+          longitude: location.lon,
+          timezone: location.timezone
+        };
+        db.laptops[idx].lastSeen = new Date().toISOString();
+        saveDB(db);
+        
+        return res.json({ 
+          message: 'Check-in successful',
+          location: db.laptops[idx].lastLocation,
+          lastSeen: db.laptops[idx].lastSeen
+        });
+      }
+    } catch (locErr) {
+      console.log('Location API error:', locErr);
+    }
+    
+    // If location API fails, just save IP and timestamp
+    const idx = db.laptops.findIndex(l => l.id === req.params.id);
+    db.laptops[idx].lastIpAddress = ip;
+    db.laptops[idx].lastSeen = new Date().toISOString();
+    saveDB(db);
+    
+    res.json({ 
+      message: 'Check-in successful (location unavailable)',
+      lastSeen: db.laptops[idx].lastSeen
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Check-in failed: ' + err.message });
+  }
+});
+
+// Mark laptop as stolen
 app.put('/api/laptops/:id/stolen', protect, (req, res) => {
   const db = loadDB();
   const idx = db.laptops.findIndex(l => l.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  if (db.laptops[idx].user !== req.user.id && !isAdmin(req.user)) return res.status(403).json({ error: 'Not authorized' });
-  db.laptops[idx].stolen = req.body.stolen || true;
-  db.laptops[idx].status = req.body.stolen ? 'Stolen' : 'Active';
-  saveDB(db); res.json(db.laptops[idx]);
+  
+  const laptop = db.laptops[idx];
+  if (laptop.user !== req.user.id && !isAdmin(req.user)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  laptop.stolen = req.body.stolen || true;
+  laptop.status = req.body.stolen ? 'Stolen' : 'Active';
+  if (req.body.stolen) {
+    laptop.reportedStolenAt = new Date().toISOString();
+    console.log(`🚨 ALERT: Laptop ${laptop.id} marked as STOLEN by user ${req.user.id}`);
+    console.log(`Last known location: ${laptop.lastLocation?.city || 'Unknown'}, ${laptop.lastLocation?.country || 'Unknown'}`);
+    // TODO: Send email/SMS alerts here
+  }
+  
+  saveDB(db);
+  res.json(laptop);
+});
+
+// Get laptop location
+app.get('/api/laptops/:id/location', protect, (req, res) => {
+  const db = loadDB();
+  const laptop = db.laptops.find(l => l.id === req.params.id);
+  if (!laptop) return res.status(404).json({ error: 'Not found' });
+  
+  if (laptop.user !== req.user.id && !isAdmin(req.user)) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  res.json({
+    lastLocation: laptop.lastLocation,
+    lastSeen: laptop.lastSeen,
+    lastIpAddress: laptop.lastIpAddress,
+    stolen: laptop.stolen
+  });
 });
 
 // ADMIN ROUTES
@@ -194,7 +295,8 @@ app.delete('/api/admin/laptops/:id', protect, (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin access required' });
   const db = loadDB();
   db.laptops = db.laptops.filter(l => l.id !== req.params.id);
-  saveDB(db); res.json({ message: 'Deleted' });
+  saveDB(db); 
+  res.json({ message: 'Deleted' });
 });
 
 app.get('/api/admin/stolen', protect, (req, res) => {
@@ -208,5 +310,6 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/subscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'subscription.html')));
+app.get('/checkin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checkin.html')));
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -10,7 +10,7 @@
     :root { --primary:#2563eb; --danger:#dc2626; --bg:#f3f4f6; --card:#fff; --text:#1f2937; --light:#6b7280; --border:#e5e7eb; --stat-blue-bg:#e0f2fe; --stat-blue-text:#0369a1; --stat-green-bg:#dcfce7; --stat-green-text:#15803d; --stat-red-bg:#fee2e2; --stat-red-text:#b91c1c; }
     [data-theme="dark"] { --bg:#121212; --card:#1e1e1e; --text:#e0e0e0; --light:#a0a0a0; --border:#333; --stat-blue-bg:#1e3a8a; --stat-blue-text:#93c5fd; --stat-green-bg:#14532d; --stat-green-text:#4ade80; --stat-red-bg:#7f1d1d; --stat-red-text:#f87171; }
     body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; transition:background 0.3s, color 0.3s; }
-    .wrap { max-width:1000px; margin:0 auto; }
+    .wrap { max-width:1100px; margin:0 auto; }
     .header { display:flex; align-items:center; justify-content:space-between; background:var(--card); padding:15px 20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px; flex-wrap:wrap; gap:10px; }
     .logo-area { display:flex; align-items:center; gap:12px; }
     .logo-area img { height:45px; width:45px; object-fit:contain; }
@@ -18,6 +18,9 @@
     .btn-out { background:#374151; color:#fff; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; }
     .btn-theme { background:none; border:none; font-size:1.5rem; cursor:pointer; padding:5px; }
     .btn-demo { background:#f59e0b; color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; }
+    .btn-track { background:#8b5cf6; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
+    .btn-stolen { background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
+    .btn-safe { background:#10b981; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
     .stats { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
     .stat { flex:1; min-width:100px; padding:15px; border-radius:12px; text-align:center; transition:background 0.3s, color 0.3s; }
     .stat h3 { margin:0; font-size:0.9rem; }
@@ -50,7 +53,7 @@
     .btn-save { width:100%; padding:10px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:8px; }
     .btn-close { width:100%; padding:10px; background:#ef4444; color:#fff; border:none; border-radius:8px; cursor:pointer; }
     .close-video { position:absolute; top:20px; right:20px; color:#fff; font-size:2rem; cursor:pointer; }
-    @media(max-width:600px){ .stats{flex-direction:column;} }
+    @media(max-width:768px){ .stats{flex-direction:column;} table{font-size:0.8rem;} th,td{padding:8px 4px;} }
   </style>
 </head>
 <body>
@@ -68,7 +71,7 @@
     <div class="stats">
       <div class="stat s-blue"><h3>Total</h3><p id="st-tot">0</p></div>
       <div class="stat s-green"><h3>Active</h3><p id="st-act">0</p></div>
-      <div class="stat s-red"><h3>Repair</h3><p id="st-rep">0</p></div>
+      <div class="stat s-red"><h3>Stolen</h3><p id="st-stolen">0</p></div>
     </div>
 
     <div class="card">
@@ -96,7 +99,19 @@
       </div>
       <div style="overflow-x:auto;">
         <table>
-          <thead><tr><th>Brand</th><th>Model</th><th>RAM</th><th>Storage</th><th>Serial</th><th>Status</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Brand</th>
+              <th>Model</th>
+              <th>RAM</th>
+              <th>Storage</th>
+              <th>Serial</th>
+              <th>Status</th>
+              <th>Last Seen</th>
+              <th>Location</th>
+              <th>Action</th>
+            </tr>
+          </thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -118,11 +133,11 @@
     </div>
   </div>
 
-    <!-- Video Modal -->
+  <!-- Video Modal -->
   <div id="videoModal" class="video-modal">
     <div class="close-video" onclick="closeVideo()">×</div>
     <div class="video-box">
-      <h3 style="margin-bottom:10px;">🛡️ Why Use Laptop Tracker?</h3>
+      <h3 style="margin-bottom:10px;">️ Why Use Laptop Tracker?</h3>
       <p style="margin-bottom:15px; color:#666;">Learn how we help recover lost devices.</p>
       <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
         <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" 
@@ -131,9 +146,6 @@
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowfullscreen></iframe>
       </div>
-    </div>
-  </div>
-      <p style="margin-top:10px; font-size:0.85rem;">Replace the video link with your own when ready!</p>
     </div>
   </div>
 
@@ -154,7 +166,6 @@
     window.openVideo = () => document.getElementById('videoModal').style.display = 'flex';
     window.closeVideo = () => {
       document.getElementById('videoModal').style.display = 'none';
-      // Stop video playing when closed
       const iframe = document.querySelector('.video-box iframe');
       const src = iframe.src;
       iframe.src = src;
@@ -188,21 +199,46 @@
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
       if(laptops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#666;padding:20px;">No laptops yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#666;padding:20px;">No laptops yet.</td></tr>';
         return;
       }
       laptops.forEach(l => {
-        tbody.innerHTML += `<tr><td><strong>${l.brand||''}</strong></td><td>${l.model||''}</td><td>${l.ram||''}</td><td>${l.storage||''}</td><td>${l.serialNumber||''}</td><td style="color:${l.status==='Active'?'green':l.status==='In Repair'?'orange':'red'}">${l.status||''}</td><td><button class="btn-edit" onclick="openEdit('${l.id}')">Edit</button><button class="btn-del" onclick="deleteItem('${l.id}')">Delete</button></td></tr>`;
+        const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : 'Never';
+        const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : 'Unknown';
+        const statusColor = l.stolen ? '#dc2626' : l.status==='Active' ? '#10b981' : '#f59e0b';
+        const statusText = l.stolen ? '🚨 STOLEN' : (l.status || 'Active');
+        
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${l.brand||''}</strong></td>
+            <td>${l.model||''}</td>
+            <td>${l.ram||''}</td>
+            <td>${l.storage||''}</td>
+            <td>${l.serialNumber||''}</td>
+            <td style="color:${statusColor};font-weight:bold">${statusText}</td>
+            <td>${lastSeen}</td>
+            <td>${location}</td>
+            <td>
+              <button class="btn-track" onclick="viewLocation('${l.id}')">📍 Track</button>
+              <button class="btn-edit" onclick="openEdit('${l.id}')">Edit</button>
+              ${l.stolen 
+                ? `<button class="btn-safe" onclick="toggleStolen('${l.id}', false)">Mark Safe</button>`
+                : `<button class="btn-stolen" onclick="toggleStolen('${l.id}', true)">Mark Stolen</button>`
+              }
+              <button class="btn-del" onclick="deleteItem('${l.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
       });
     }
 
     function updateStats() {
       const t1 = document.getElementById('st-tot');
       const t2 = document.getElementById('st-act');
-      const t3 = document.getElementById('st-rep');
+      const t3 = document.getElementById('st-stolen');
       if(t1) t1.textContent = laptops.length;
-      if(t2) t2.textContent = laptops.filter(x=>x.status==='Active').length;
-      if(t3) t3.textContent = laptops.filter(x=>x.status==='In Repair').length;
+      if(t2) t2.textContent = laptops.filter(x => !x.stolen).length;
+      if(t3) t3.textContent = laptops.filter(x => x.stolen).length;
     }
 
     document.getElementById('addForm').onsubmit = async(e) => {
@@ -249,9 +285,11 @@
 
     window.exportCSV = () => {
       if (laptops.length === 0) return alert("No data to export!");
-      let csvContent = "text/csv;charset=utf-8,Brand,Model,Serial Number,RAM,Storage,Status,Notes\n";
+      let csvContent = "text/csv;charset=utf-8,Brand,Model,Serial Number,RAM,Storage,Status,Notes,Last Seen,Location,Stolen\n";
       laptops.forEach(l => {
-        let row = [l.brand||"",l.model||"",l.serialNumber||"",l.ram||"",l.storage||"",l.status||"",l.notes||""].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
+        const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : '';
+        const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : '';
+        let row = [l.brand||"",l.model||"",l.serialNumber||"",l.ram||"",l.storage||"",l.status||"",l.notes||"",lastSeen,location,l.stolen?"Yes":"No"].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
         csvContent += row + "\n";
       });
       const encodedUri = encodeURI(csvContent);
@@ -259,6 +297,64 @@
       link.setAttribute("href", encodedUri);
       link.setAttribute("download", "laptop_tracker_export.csv");
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    };
+
+    // TRACKING FUNCTIONS
+    window.viewLocation = async (id) => {
+      try {
+        const res = await fetch(`/api/laptops/${id}/location`, { headers: auth });
+        const data = await res.json();
+        
+        if (!res.ok) return alert(data.error);
+        
+        const loc = data.lastLocation;
+        if (!loc || !loc.city) {
+          return alert('📍 No location data yet. Laptop needs to check in first.\n\nUsers can visit the check-in page to report location.');
+        }
+        
+        const mapUrl = `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`;
+        const msg = `📍 Last Known Location:\n\n` +
+                    `City: ${loc.city}\n` +
+                    `Region: ${loc.region}\n` +
+                    `Country: ${loc.country}\n` +
+                    `Coordinates: ${loc.latitude}, ${loc.longitude}\n` +
+                    `Timezone: ${loc.timezone}\n` +
+                    `IP Address: ${data.lastIpAddress}\n` +
+                    `Last Seen: ${new Date(data.lastSeen).toLocaleString()}\n\n` +
+                    `Status: ${data.stolen ? '🚨 STOLEN' : '✅ Active'}`;
+        
+        if (confirm(msg + '\n\nOpen in Google Maps?')) {
+          window.open(mapUrl, '_blank');
+        }
+      } catch (err) {
+        alert('Failed to get location: ' + err.message);
+      }
+    };
+
+    window.toggleStolen = async (id, stolen) => {
+      const confirmMsg = stolen 
+        ? '🚨 MARK AS STOLEN?\n\nThis will:\n- Alert the admin\n- Track last known location\n- Add to stolen database'
+        : '✅ Mark as safe?';
+      
+      if (!confirm(confirmMsg)) return;
+      
+      try {
+        const res = await fetch(`/api/laptops/${id}/stolen`, {
+          method: 'PUT',
+          headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stolen })
+        });
+        
+        if (res.ok) {
+          alert(stolen ? '🚨 Laptop marked as STOLEN! Admin has been notified.' : '✅ Laptop marked as safe.');
+          loadData();
+        } else {
+          const data = await res.json();
+          alert('Failed: ' + data.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
     };
 
     window.logout = () => { localStorage.removeItem('token'); window.location.href='/'; };

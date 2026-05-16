@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laptop Tracker - Auto Check-In</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+      color: #60a5fa;
+    }
+    .subtitle {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      margin-bottom: 25px;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-weight: 500;
+    }
+    .status.waiting {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+    }
+    .status.success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
+    .status.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+    .info {
+      background: rgba(59, 130, 246, 0.15);
+      border-left: 4px solid #3b82f6;
+      padding: 12px 15px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .countdown {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #60a5fa;
+      margin: 15px 0;
+    }
+    .footer {
+      margin-top: 25px;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+    .hidden { display: none; }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">📍</div>
+    <h1>Laptop Tracker</h1>
+    <p class="subtitle">Auto Location Check-In</p>
+
+    <!-- Setup Screen -->
+    <div id="setupScreen">
+      <p style="margin-bottom: 15px; color: #d1d5db;">Enter your Laptop ID to start auto-tracking:</p>
+      <input type="text" id="laptopId" placeholder="Paste Laptop ID here" 
+             style="width: 100%; padding: 12px 15px; border-radius: 10px; border: none; margin-bottom: 15px; font-size: 1rem; background: rgba(255,255,255,0.15); color: #fff;">
+      <button id="startBtn" onclick="startTracking()" 
+              style="width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+        🚀 Start Auto-Tracking
+      </button>
+      <p class="info">
+        💡 <strong>Tip:</strong> Keep this tab open (you can minimize it). 
+        It will auto-report location every 5 minutes when laptop is online.
+      </p>
+    </div>
+
+    <!-- Tracking Screen -->
+    <div id="trackingScreen" class="hidden">
+      <div class="status waiting pulse" id="statusMsg">
+        ⏳ Waiting for next check-in...
+      </div>
+      
+      <p style="color: #9ca3af; margin-bottom: 10px;">Next check-in in:</p>
+      <div class="countdown" id="countdown">300</div>
+      
+      <p style="color: #6b7280; font-size: 0.85rem;" id="lastCheckin">
+        Last check-in: Not yet
+      </p>
+      
+      <div class="info">
+        ✅ Auto-tracking active<br>
+        📍 Reports: City, Country, IP Address<br>
+        🔄 Interval: Every 5 minutes<br>
+        🔋 Low battery impact
+      </div>
+      
+      <button onclick="stopTracking()" 
+              style="width: 100%; padding: 12px; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; border-radius: 10px; font-size: 0.9rem; cursor: pointer; margin-top: 10px;">
+        ⏹️ Stop Tracking
+      </button>
+    </div>
+
+    <p class="footer">
+      🔐 Secure • 🌍 Works anywhere • 📱 Laptop Tracker v1.0
+    </p>
+  </div>
+
+  <script>
+    let laptopId = '';
+    let countdownInterval = null;
+    let checkinInterval = null;
+    const CHECKIN_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+    // Check if ID is in URL (auto-start)
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const autoId = urlParams.get('id');
+      if (autoId) {
+        laptopId = autoId;
+        document.getElementById('laptopId').value = autoId;
+        startTracking();
+      }
+    };
+
+    function startTracking() {
+      const inputId = document.getElementById('laptopId').value.trim();
+      if (!inputId) {
+        alert('Please enter a Laptop ID');
+        return;
+      }
+      
+      laptopId = inputId;
+      
+      // Switch to tracking screen
+      document.getElementById('setupScreen').classList.add('hidden');
+      document.getElementById('trackingScreen').classList.remove('hidden');
+      
+      // Start countdown and check-in
+      startCountdown();
+      doCheckin();
+      checkinInterval = setInterval(doCheckin, CHECKIN_INTERVAL);
+      
+      // Save to localStorage so it persists if page reloads
+      localStorage.setItem('tracker_laptop_id', laptopId);
+      localStorage.setItem('tracker_active', 'true');
+    }
+
+    function startCountdown() {
+      let seconds = 300; // 5 minutes
+      const countdownEl = document.getElementById('countdown');
+      
+      countdownInterval = setInterval(() => {
+        seconds--;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        countdownEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        
+        if (seconds <= 0) {
+          seconds = 300;
+        }
+      }, 1000);
+    }
+
+    async function doCheckin() {
+      const statusEl = document.getElementById('statusMsg');
+      const lastCheckinEl = document.getElementById('lastCheckin');
+      
+      statusEl.className = 'status waiting pulse';
+      statusEl.textContent = '📡 Sending location...';
+      
+      try {
+        const res = await fetch(`/api/laptops/${laptopId}/checkin`);
+        const data = await res.json();
+        
+        if (res.ok) {
+          statusEl.className = 'status success';
+          statusEl.textContent = '✅ Location sent successfully!';
+          
+          const now = new Date();
+          lastCheckinEl.textContent = `Last check-in: ${now.toLocaleTimeString()}`;
+          
+          // Show location if available
+          if (data.location?.city) {
+            console.log(`📍 Location: ${data.location.city}, ${data.location.country}`);
+          }
+        } else {
+          throw new Error(data.error || 'Check-in failed');
+        }
+      } catch (err) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '❌ Check-in failed. Retrying...';
+        console.error('Check-in error:', err);
+      }
+      
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        if (statusEl.classList.contains('success') || statusEl.classList.contains('error')) {
+          statusEl.className = 'status waiting pulse';
+          statusEl.textContent = '⏳ Waiting for next check-in...';
+        }
+      }, 3000);
+    }
+
+    function stopTracking() {
+      if (confirm('Stop auto-tracking for this laptop?')) {
+        clearInterval(countdownInterval);
+        clearInterval(checkinInterval);
+        localStorage.removeItem('tracker_active');
+        
+        // Switch back to setup screen
+        document.getElementById('trackingScreen').classList.add('hidden');
+        document.getElementById('setupScreen').classList.remove('hidden');
+        
+        alert('Auto-tracking stopped. You can restart anytime.');
+      }
+    }
+
+    // Auto-resume if page reloads and tracking was active
+    if (localStorage.getItem('tracker_active') === 'true') {
+      const savedId = localStorage.getItem('tracker_laptop_id');
+      if (savedId) {
+        laptopId = savedId;
+        document.getElementById('laptopId').value = savedId;
+        startTracking();
+      }
+    }
+
+    // Keep screen awake (prevent sleep)
+    if ('wakeLock' in navigator) {
+      let wakeLock = null;
+      const requestWakeLock = async () => {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+        } catch (err) {
+          console.log('Wake Lock not supported');
+        }
+      };
+      requestWakeLock();
+      document.addEventListener('visibilitychange', () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+          requestWakeLock();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

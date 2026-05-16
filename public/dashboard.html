@@ -77,6 +77,16 @@
     <div class="card">
       <h2>Add New Laptop</h2>
       <form id="addForm">
+<div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border-radius: 10px; border-left: 4px solid #3b82f6;">
+  <p style="margin: 0 0 10px; font-weight: 600;">🤖 Enable Auto-Tracking</p>
+  <p style="margin: 0 0 10px; font-size: 0.9rem; color: var(--light);">
+    Download auto-checkin script for this laptop. Keep browser tab open for auto location reports.
+  </p>
+  <a id="autoTrackLink" href="/tracker.html" target="_blank" 
+     style="display: inline-block; padding: 8px 16px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-size: 0.9rem;">
+    📥 Download Auto-Tracker
+  </a>
+</div>
         <div class="grid">
           <input type="text" id="brand" placeholder="Brand" required>
           <input type="text" id="model" placeholder="Model" required>
@@ -356,7 +366,13 @@
         alert('Error: ' + err.message);
       }
     };
-
+// Update auto-track link with current laptop ID (if editing)
+function updateAutoTrackLink(laptopId) {
+  const link = document.getElementById('autoTrackLink');
+  if (link && laptopId) {
+    link.href = `/tracker.html?id=${laptopId}`;
+  }
+}
     window.logout = () => { localStorage.removeItem('token'); window.location.href='/'; };
     loadData();
   </script>

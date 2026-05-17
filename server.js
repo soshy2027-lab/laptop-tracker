@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // GOOGLE CONFIG
 const GOOGLE_CLIENT_ID = "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com";
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+// M-PESA CONFIG (SANDBOX MODE - TEST ONLY)
+// 🔁 MONDAY: Replace these 3 lines with your real Paybill details
+const MPESA_CONSUMER_KEY = "zEKsFdWZT5MATQap9mrs1z8TuDh5bswteWSeIDXlRFFifaS1";
+const MPESA_CONSUMER_SECRET = "EBGQuiqmC9Hm6GH1xOhgYR0F6zcLcnQRd5G2ZcMZkARiR2THclgvKuY7twTidhOb";
+const MPESA_SHORTCODE = "174379"; // Sandbox test shortcode
+const MPESA_PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"; // Sandbox passkey
+const MPESA_CALLBACK_URL = "https://laptop-tracker-2h7l.onrender.com/api/mpesa/callback";
+const MPESA_BASE_URL = "https://sandbox.safaricom.co.ke";
+
+// Temporary store for pending payments (maps phone -> { userId, amount })
+const pendingPayments = new Map();
 
 // JSON DATABASE
 const DB_FILE = './data.json';
@@ -47,7 +60,7 @@ const findOrCreateUser = (email, name, isGoogle) => {
     user = {
       id: Date.now().toString(), name, email, 
       password: isGoogle ? 'GOOGLE_USER_NO_PASSWORD' : 'N/A',
-      role: 'user',
+      role: 'user', phone: '',
       trialEndDate: trialEndDate.toISOString(),
       isSubscribed: false, subscriptionExpiryDate: null,
       provider: isGoogle ? 'google' : 'local'
@@ -66,7 +79,7 @@ app.post('/api/auth/register', (req, res) => {
   const trialEndDate = new Date();
   trialEndDate.setDate(trialEndDate.getDate() + 21);
   const user = {
-    id: Date.now().toString(), name, email, password, role: 'user',
+    id: Date.now().toString(), name, email, password, role: 'user', phone: '',
     trialEndDate: trialEndDate.toISOString(),
     isSubscribed: false, subscriptionExpiryDate: null, provider: 'local'
   };
@@ -107,6 +120,114 @@ const protect = (req, res, next) => {
   try { req.user = JSON.parse(Buffer.from(token, 'base64').toString()); next(); }
   catch { res.status(401).json({ error: 'Invalid token' }); }
 };
+
+// M-PESA HELPERS
+async function getMpesaAccessToken() {
+  const auth = Buffer.from(`${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`).toString('base64');
+  const res = await axios.get(`${MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
+    headers: { Authorization: `Basic ${auth}` }
+  });
+  return res.data.access_token;
+}
+
+function generateMpesaPassword(timestamp) {
+  const str = MPESA_SHORTCODE + MPESA_PASSKEY + timestamp;
+  return Buffer.from(str).toString('base64');
+}
+
+// M-PESA STK PUSH ROUTE
+app.post('/api/mpesa/pay', protect, async (req, res) => {
+  try {
+    const { phone, amount = 2500 } = req.body;
+    if (!phone) return res.status(400).json({ error: 'Phone number required' });
+    
+    // Format phone: remove spaces, ensure starts with 254
+    const formattedPhone = phone.replace(/\s/g, '').startsWith('254') ? phone.replace(/\s/g, '') : `254${phone.replace(/^0/, '')}`;
+    
+    const token = await getMpesaAccessToken();
+    const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    const password = generateMpesaPassword(timestamp);
+    
+    const payload = {
+      BusinessShortCode: MPESA_SHORTCODE,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: "CustomerPayBillOnline",
+      Amount: amount,
+      PartyA: formattedPhone,
+      PartyB: MPESA_SHORTCODE,
+      PhoneNumber: formattedPhone,
+      CallBackURL: MPESA_CALLBACK_URL,
+      AccountReference: "LaptopTracker",
+      TransactionDesc: "Subscription Payment"
+    };
+    
+    const stkRes = await axios.post(`${MPESA_BASE_URL}/mpesa/stkpush/v1/processrequest`, payload, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    // Store pending payment
+    pendingPayments.set(formattedPhone, { userId: req.user.id, amount, timestamp });
+    
+    res.json({ 
+      message: 'STK Push sent successfully. Check your phone.', 
+      CheckoutRequestID: stkRes.data.CheckoutRequestID 
+    });
+  } catch (err) {
+    console.error('M-Pesa Error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to initiate payment' });
+  }
+});
+
+// M-PESA CALLBACK ROUTE
+app.post('/api/mpesa/callback', async (req, res) => {
+  try {
+    const { Body } = req.body;
+    const { stkCallback } = Body;
+    const { ResultCode, CallbackMetadata, PhoneNumber } = stkCallback;
+    
+    // Acknowledge receipt immediately
+    res.json({ ResultCode: 0, ResultDesc: 'Success' });
+    
+    if (ResultCode === 0 && CallbackMetadata) {
+      const phone = PhoneNumber || Object.values(stkCallback)[0]?.PhoneNumber;
+      const pending = pendingPayments.get(phone);
+      
+      if (pending) {
+        const db = loadDB();
+        const userIdx = db.users.findIndex(u => u.id === pending.userId);
+        
+        if (userIdx !== -1) {
+          const now = new Date();
+          const expiry = new Date();
+          expiry.setMonth(expiry.getMonth() + 4);
+          
+          db.users[userIdx].isSubscribed = true;
+          db.users[userIdx].subscriptionExpiryDate = expiry.toISOString();
+          db.users[userIdx].paymentHistory = db.users[userIdx].paymentHistory || [];
+          db.users[userIdx].paymentHistory.push({ 
+            amount: pending.amount, 
+            currency: 'KSH', 
+            date: now.toISOString(), 
+            method: 'M-Pesa' 
+          });
+          
+          saveDB(db);
+          pendingPayments.delete(phone);
+          console.log(`✅ Payment successful for user ${pending.userId}`);
+        }
+      }
+    } else {
+      console.log(`❌ Payment failed or cancelled. ResultCode: ${ResultCode}`);
+      // Clean up pending payment
+      const phone = PhoneNumber || Object.values(stkCallback)[0]?.PhoneNumber;
+      if (phone) pendingPayments.delete(phone);
+    }
+  } catch (err) {
+    console.error('Callback Error:', err);
+    res.status(500).json({ ResultCode: 1, ResultDesc: 'Error processing callback' });
+  }
+});
 
 // SUBSCRIPTION API
 app.get('/api/subscription/status', protect, (req, res) => {
@@ -180,102 +301,65 @@ app.put('/api/laptops/:id', protect, checkSub, (req, res) => {
 });
 
 // TRACKING ENDPOINTS
-
-// Laptop check-in (get location from IP)
 app.get('/api/laptops/:id/checkin', async (req, res) => {
   try {
     const db = loadDB();
     const laptop = db.laptops.find(l => l.id === req.params.id);
     if (!laptop) return res.status(404).json({ error: 'Laptop not found' });
     
-    // Get IP from request
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
     
-    // Get location from IP using free API
     try {
       const locationRes = await fetch(`http://ip-api.com/json/${ip}`);
       const location = await locationRes.json();
       
       if (location.status === 'success') {
-        // Update laptop with location
         const idx = db.laptops.findIndex(l => l.id === req.params.id);
         db.laptops[idx].lastIpAddress = ip;
         db.laptops[idx].lastLocation = {
-          city: location.city,
-          region: location.regionName,
-          country: location.country,
-          latitude: location.lat,
-          longitude: location.lon,
-          timezone: location.timezone
+          city: location.city, region: location.regionName, country: location.country,
+          latitude: location.lat, longitude: location.lon, timezone: location.timezone
         };
         db.laptops[idx].lastSeen = new Date().toISOString();
         saveDB(db);
-        
-        return res.json({ 
-          message: 'Check-in successful',
-          location: db.laptops[idx].lastLocation,
-          lastSeen: db.laptops[idx].lastSeen
-        });
+        return res.json({ message: 'Check-in successful', location: db.laptops[idx].lastLocation, lastSeen: db.laptops[idx].lastSeen });
       }
-    } catch (locErr) {
-      console.log('Location API error:', locErr);
-    }
+    } catch (locErr) { console.log('Location API error:', locErr); }
     
-    // If location API fails, just save IP and timestamp
     const idx = db.laptops.findIndex(l => l.id === req.params.id);
     db.laptops[idx].lastIpAddress = ip;
     db.laptops[idx].lastSeen = new Date().toISOString();
     saveDB(db);
-    
-    res.json({ 
-      message: 'Check-in successful (location unavailable)',
-      lastSeen: db.laptops[idx].lastSeen
-    });
+    res.json({ message: 'Check-in successful (location unavailable)', lastSeen: db.laptops[idx].lastSeen });
   } catch (err) {
     res.status(500).json({ error: 'Check-in failed: ' + err.message });
   }
 });
 
-// Mark laptop as stolen
 app.put('/api/laptops/:id/stolen', protect, (req, res) => {
   const db = loadDB();
   const idx = db.laptops.findIndex(l => l.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   
   const laptop = db.laptops[idx];
-  if (laptop.user !== req.user.id && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
+  if (laptop.user !== req.user.id && !isAdmin(req.user)) return res.status(403).json({ error: 'Not authorized' });
   
   laptop.stolen = req.body.stolen || true;
   laptop.status = req.body.stolen ? 'Stolen' : 'Active';
   if (req.body.stolen) {
     laptop.reportedStolenAt = new Date().toISOString();
-    console.log(`🚨 ALERT: Laptop ${laptop.id} marked as STOLEN by user ${req.user.id}`);
-    console.log(`Last known location: ${laptop.lastLocation?.city || 'Unknown'}, ${laptop.lastLocation?.country || 'Unknown'}`);
-    // TODO: Send email/SMS alerts here
+    console.log(` ALERT: Laptop ${laptop.id} marked as STOLEN`);
   }
-  
   saveDB(db);
   res.json(laptop);
 });
 
-// Get laptop location
 app.get('/api/laptops/:id/location', protect, (req, res) => {
   const db = loadDB();
   const laptop = db.laptops.find(l => l.id === req.params.id);
   if (!laptop) return res.status(404).json({ error: 'Not found' });
-  
-  if (laptop.user !== req.user.id && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Not authorized' });
-  }
-  
-  res.json({
-    lastLocation: laptop.lastLocation,
-    lastSeen: laptop.lastSeen,
-    lastIpAddress: laptop.lastIpAddress,
-    stolen: laptop.stolen
-  });
+  if (laptop.user !== req.user.id && !isAdmin(req.user)) return res.status(403).json({ error: 'Not authorized' });
+  res.json({ lastLocation: laptop.lastLocation, lastSeen: laptop.lastSeen, lastIpAddress: laptop.lastIpAddress, stolen: laptop.stolen });
 });
 
 // ADMIN ROUTES

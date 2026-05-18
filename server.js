@@ -40,8 +40,34 @@ const apiLimiter = rateLimit({
 // Apply limits
 app.use('/api/auth/', authLimiter); // Strict limit for login/register
 app.use('/api/', apiLimiter);       // General limit for other API calls
-app.use(cors());
+app.use(cors({ origin: ['https://laptop-tracker-2h7l.onrender.com', 'http://localhost:3000'], credentials: true }));
 app.use(express.json());
+// 🔍 INPUT VALIDATION HELPER
+const validateInput = (req, res, next) => {
+  const { body } = req;
+  const errors = [];
+  
+  // Email validation (if present)
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+    errors.push('Invalid email format');
+  }
+  // Password validation (if present)
+  if (body.password && body.password.length < 6) {
+    errors.push('Password must be at least 6 characters');
+  }
+  // Phone validation (if present)
+  if (body.phone && !/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]*$/.test(body.phone)) {
+    errors.push('Invalid phone number format');
+  }
+  
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join(', ') });
+  }
+  next();
+};
+
+// Apply validation to all API routes
+app.use('/api/', validateInput);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // GOOGLE CONFIG

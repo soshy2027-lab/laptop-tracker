@@ -6,6 +6,54 @@
   <title>Laptop Tracker - Login</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    /* LOADER STYLES */
+    #page-loader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    .loader-content {
+      text-align: center;
+      position: relative;
+    }
+    .loader-ring {
+      width: 110px;
+      height: 110px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .loader-logo {
+      width: 65px;
+      height: 65px;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .loader-text {
+      color: white;
+      margin-top: 25px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      animation: fadeText 2s ease-in-out infinite;
+    }
+    @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.9; } }
+    @keyframes fadeText { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+    /* EXISTING STYLES */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -25,21 +73,18 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       text-align: center;
     }
-    /* LOGO STYLING */
     .logo-img {
       width: 80px;
       height: 80px;
       margin: 0 auto 15px;
-      object-fit: contain; /* Keeps your logo proportions perfect */
+      object-fit: contain;
     }
-    /* BLUE TEXT */
     h1 { 
-      color: #2563eb; /* Professional Blue */
+      color: #2563eb;
       margin-bottom: 5px; 
       font-size: 1.5rem; 
     }
     p.subtitle { color: #6b7280; margin-bottom: 25px; font-size: 0.9rem; }
-    
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab {
       flex: 1;
@@ -52,7 +97,6 @@
       color: #6b7280;
     }
     .tab.active { background: #2563eb; color: white; }
-    
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; margin-bottom: 5px; color: #374151; font-size: 0.9rem; }
     .form-group input {
@@ -63,7 +107,6 @@
       font-size: 1rem;
     }
     .form-group input:focus { outline: none; border-color: #2563eb; }
-    
     .btn-primary {
       width: 100%;
       padding: 14px;
@@ -77,11 +120,9 @@
       margin-bottom: 15px;
     }
     .btn-primary:hover { background: #1d4ed8; }
-    
     .divider { display: flex; align-items: center; margin: 20px 0; color: #9ca3af; }
     .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
     .divider span { padding: 0 10px; }
-    
     .google-btn {
       width: 100%;
       padding: 12px;
@@ -97,11 +138,8 @@
       color: #374151;
     }
     .google-btn:hover { background: #f9fafb; }
-    
     .hidden { display: none; }
     .error-msg { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; }
-    
-    /* FOOTER LINKS */
     .footer-links {
       margin-top: 30px;
       padding-top: 20px;
@@ -121,12 +159,18 @@
   </style>
 </head>
 <body>
+  <!-- LOADER OVERLAY -->
+  <div id="page-loader">
+    <div class="loader-content">
+      <div class="loader-ring"></div>
+      <img src="logo.png" alt="Logo" class="loader-logo">
+      <p class="loader-text">Laptop Tracker</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
   <div class="container">
-    <!-- LOGO IMAGE -->
-    <!-- Make sure 'logo.png' is in your public folder! -->
     <img src="logo.png" alt="Logo" class="logo-img">
-    
-    <!-- BLUE TITLE -->
     <h1>Laptop Tracker</h1>
     <p class="subtitle">Track. Protect. Recover.</p>
 
@@ -137,7 +181,6 @@
       <button class="tab" onclick="switchTab('register')">Register</button>
     </div>
 
-    <!-- LOGIN FORM -->
     <div id="loginForm">
       <div class="form-group">
         <label>Email</label>
@@ -153,7 +196,6 @@
       <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
     </div>
 
-    <!-- REGISTER FORM -->
     <div id="registerForm" class="hidden">
       <div class="form-group">
         <label>Full Name</label>
@@ -170,7 +212,6 @@
       <button class="btn-primary" onclick="handleRegister()">Create Account</button>
     </div>
 
-    <!-- FOOTER LINKS -->
     <div class="footer-links">
       <a href="/important.html">Important</a>
       <a href="/terms.html">Terms</a>
@@ -179,6 +220,13 @@
   </div>
 
   <script>
+    // LOADER: Hide when page fully loads
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('page-loader');
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 500);
+    });
+
     window.switchTab = (tab) => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       event.target.classList.add('active');

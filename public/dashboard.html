@@ -4,133 +4,149 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laptop Tracker Dashboard</title>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#2563eb">
   <style>
-    /* LOADER STYLES */
+    /* LOADER */
     #page-loader {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--bg); z-index: 9999; display: flex;
       align-items: center; justify-content: center; transition: opacity 0.5s ease;
     }
     .loader-ring {
-      width: 70px; height: 70px; border: 4px solid var(--border);
-      border-top: 4px solid var(--primary); border-radius: 50%;
+      width: 70px; height: 70px; border: 4px solid #4b5563;
+      border-top: 4px solid #2563eb; border-radius: 50%;
       animation: spin 1s linear infinite; margin: 0 auto 15px;
     }
     .loader-logo { width: 40px; height: 40px; object-fit: contain; margin-bottom: 10px; }
-    .loader-text { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+    .loader-text { color: #2563eb; font-weight: bold; font-size: 1.1rem; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* COLOR VARIABLES */
     :root { 
       --primary:#2563eb; --danger:#dc2626; 
-      --bg:#f3f4f6; --card:#fff; 
-      --text:#1f2937; --light:#6b7280; 
-      --border:#d1d5db; /* Stronger border for light mode */
-      --input-bg:#f9fafb; /* Input background light */
-      --stat-blue-bg:#e0f2fe; --stat-blue-text:#0369a1; 
-      --stat-green-bg:#dcfce7; --stat-green-text:#15803d; 
-      --stat-red-bg:#fee2e2; --stat-red-text:#b91c1c; 
+      --bg:#f3f4f6; --card:#ffffff; 
+      --text:#111827; --light:#6b7280; 
+      --border:#9ca3af; --input-bg:#ffffff;
     }
     [data-theme="dark"] { 
-      --bg:#111827; --card:#1f2937; 
-      --text:#f9fafb; --light:#9ca3af; 
-      --border:#374151; /* Stronger border for dark mode */
-      --input-bg:#374151; /* Input background dark */
-      --stat-blue-bg:#1e3a8a; --stat-blue-text:#93c5fd; 
-      --stat-green-bg:#064e3b; --stat-green-text:#4ade80; 
-      --stat-red-bg:#7f1d1d; --stat-red-text:#f87171; 
+      --bg:#0f172a; --card:#1e293b; 
+      --text:#f1f5f9; --light:#94a3b8; 
+      --border:#475569; --input-bg:#334155;
     }
 
-    body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; transition:background 0.3s, color 0.3s; }
+    body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; transition:all 0.3s; }
     .wrap { max-width:1100px; margin:0 auto; }
-    .header { display:flex; align-items:center; justify-content:space-between; background:var(--card); padding:15px 20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+    
+    .header { 
+      display:flex; align-items:center; justify-content:space-between; 
+      background:var(--card); padding:15px 20px; border-radius:12px; 
+      box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; flex-wrap:wrap; gap:10px; 
+    }
     .logo-area { display:flex; align-items:center; gap:12px; }
     .logo-area img { height:45px; width:45px; object-fit:contain; }
     .logo-area h1 { margin:0; font-size:1.4rem; color:var(--primary); }
     
-    .btn-out { background:#374151; color:#fff; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; }
-    .btn-theme { background:none; border:none; font-size:1.5rem; cursor:pointer; padding:5px; }
-    .btn-demo { background:#f59e0b; color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; }
-    .btn-track { background:#8b5cf6; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
-    .btn-stolen { background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
-    .btn-safe { background:#10b981; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
+    .header-buttons { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { padding:10px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem; }
+    .btn-demo { background:#f59e0b; color:#fff; }
+    .btn-sub { background:#06b6d4; color:#fff; }
+    .btn-logout { background:#475569; color:#fff; }
+    .btn-theme { 
+      background:var(--input-bg); border:2px solid var(--border); 
+      font-size:1.3rem; padding:8px 12px; cursor:pointer; border-radius:8px; 
+    }
     
     .stats { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-    .stat { flex:1; min-width:100px; padding:15px; border-radius:12px; text-align:center; transition:background 0.3s, color 0.3s; }
-    .stat h3 { margin:0; font-size:0.9rem; }
-    .stat p { font-size:1.8rem; font-weight:bold; margin:5px 0 0; }
-    .s-blue { background:var(--stat-blue-bg); color:var(--stat-blue-text); }
-    .s-green { background:var(--stat-green-bg); color:var(--stat-green-text); }
-    .s-red { background:var(--stat-red-bg); color:var(--stat-red-text); }
+    .stat { flex:1; min-width:100px; padding:20px; border-radius:12px; text-align:center; }
+    .stat h3 { margin:0; font-size:0.9rem; opacity:0.9; }
+    .stat p { font-size:2rem; font-weight:bold; margin:5px 0 0; }
+    .s-blue { background:#3b82f6; color:#fff; }
+    .s-green { background:#10b981; color:#fff; }
+    .s-red { background:#ef4444; color:#fff; }
     
-    .card { background:var(--card); padding:25px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; transition:background 0.3s; }
+    .card { background:var(--card); padding:25px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; }
     .card h2 { margin:0 0 15px; font-size:1.2rem; border-bottom:2px solid var(--border); padding-bottom:10px; }
     
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
     
-    /* FIXED INPUT STYLES */
+    /* STRONG BORDERS FOR INPUTS */
     input,select { 
       width:100%; padding:14px; 
-      border: 2px solid var(--border); /* Thicker visible border */
+      border: 2px solid var(--border); 
       border-radius:8px; font-size:1rem; box-sizing:border-box; 
-      background: var(--input-bg); /* Distinct background color */
-      color: var(--text); 
+      background: var(--input-bg); color: var(--text); 
+      font-weight:500;
     }
-    input::placeholder { color: var(--light); }
-    input:focus,select:focus { outline:none; border-color:var(--primary); background: var(--card); }
+    input::placeholder { color: var(--light); opacity:0.7; }
+    input:focus,select:focus { 
+      outline:none; border-color:var(--primary); 
+      box-shadow:0 0 0 3px rgba(37,99,235,0.2);
+    }
 
     .full { grid-column:1/-1; }
     .btn-add { background:var(--primary); color:#fff; border:none; padding:14px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:12px; font-size:1rem; }
     
     .search-row { display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; }
     .search { flex:1; min-width:150px; padding:12px; border:2px solid var(--border); border-radius:8px; font-size:1rem; box-sizing:border-box; background: var(--input-bg); color: var(--text); }
-    .btn-export { background:#10b981; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; white-space:nowrap; }
-    .btn-sub { background:#f59e0b; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; }
+    .btn-export { background:#10b981; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; }
     
     table { width:100%; border-collapse:collapse; font-size:0.9rem; }
-    th,td { padding:12px 10px; text-align:left; border-bottom:1px solid var(--border); }
-    th { background:var(--bg); font-weight:600; color:var(--light); }
-    .btn-del { background:var(--danger); color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; }
-    .btn-edit { background:#f59e0b; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:6px; }
+    th,td { padding:12px 10px; text-align:left; border-bottom:2px solid var(--border); }
+    th { background:var(--bg); font-weight:600; color:var(--light); text-transform:uppercase; font-size:0.85rem; }
+    tr:hover { background:var(--bg); }
+    
+    .btn-sm { padding:6px 10px; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; margin-right:4px; color:#fff; }
+    .btn-track { background:#8b5cf6; }
+    .btn-edit { background:#f59e0b; }
+    .btn-stolen { background:#dc2626; }
+    .btn-safe { background:#10b981; }
+    .btn-del { background:#ef4444; }
+    
     #msg { color:#10b981; font-weight:bold; margin-top:10px; min-height:20px; }
     
-    .modal, .video-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center; }
-    .modal-box, .video-box { background:var(--card); padding:20px; border-radius:12px; width:90%; max-width:400px; color:var(--text); text-align:center; }
-    .video-box { max-width:700px; }
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center; }
+    .modal-box { background:var(--card); padding:20px; border-radius:12px; width:90%; max-width:400px; color:var(--text); text-align:center; }
     .modal-box h3 { margin:0 0 15px; color:var(--primary); }
     .modal-box input,.modal-box select { margin-bottom:10px; }
     .btn-save { width:100%; padding:10px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:8px; }
     .btn-close { width:100%; padding:10px; background:#ef4444; color:#fff; border:none; border-radius:8px; cursor:pointer; }
-    .close-video { position:absolute; top:20px; right:20px; color:#fff; font-size:2rem; cursor:pointer; }
     
-    @media(max-width:768px){ .stats{flex-direction:column;} table{font-size:0.8rem;} th,td{padding:8px 4px;} }
+    .video-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:100; justify-content:center; align-items:center; }
+    .video-box { background:var(--card); padding:20px; border-radius:12px; width:90%; max-width:700px; color:var(--text); text-align:center; position:relative; }
+    .close-video { position:absolute; top:15px; right:20px; color:#fff; font-size:2.5rem; cursor:pointer; line-height:1; }
+    
+    @media(max-width:768px){ 
+      .stats{flex-direction:column;} 
+      table{font-size:0.8rem;} 
+      th,td{padding:8px 4px;} 
+      .header{flex-direction:column; align-items:flex-start;}
+      .header-buttons{width:100%; justify-content:flex-start;}
+    }
   </style>
 </head>
 <body>
-  <!-- LOADER -->
   <div id="page-loader">
     <div style="text-align:center">
       <img src="/logo.png" alt="Logo" class="loader-logo">
       <div class="loader-ring"></div>
-      <div class="loader-text">Loading Dashboard...</div>
+      <div class="loader-text">Loading...</div>
     </div>
   </div>
 
   <div class="wrap">
     <div class="header">
-      <div class="logo-area"><img src="/logo.png" alt="Logo"><h1>Laptop Tracker</h1></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn-demo" onclick="openVideo()">🎥 Watch Demo</button>
-        <button class="btn-sub" onclick="window.location.href='/subscription'">💎 Subscription</button>
-        <button id="themeToggle" class="btn-theme" onclick="toggleTheme()">🌙</button>
-        <button class="btn-out" onclick="logout()">Logout</button>
+      <div class="logo-area">
+        <img src="/logo.png" alt="Logo">
+        <h1>Laptop Tracker</h1>
+      </div>
+      <div class="header-buttons">
+        <button class="btn btn-demo" onclick="openVideo()">🎥 Demo</button>
+        <button class="btn btn-sub" onclick="window.location.href='/subscription'">💎 Subscribe</button>
+        <button class="btn btn-theme" id="themeToggle" onclick="toggleTheme()">🌙</button>
+        <button class="btn btn-logout" onclick="logout()">Logout</button>
       </div>
     </div>
 
     <div class="stats">
-      <div class="stat s-blue"><h3>Total</h3><p id="st-tot">0</p></div>
+      <div class="stat s-blue"><h3>Total Laptops</h3><p id="st-tot">0</p></div>
       <div class="stat s-green"><h3>Active</h3><p id="st-act">0</p></div>
       <div class="stat s-red"><h3>Stolen</h3><p id="st-stolen">0</p></div>
     </div>
@@ -155,8 +171,8 @@
     <div class="card">
       <h2>My Laptops</h2>
       <div class="search-row">
-        <input type="text" class="search" id="searchBox" placeholder=" Search..." onkeyup="filterTable()">
-        <button onclick="exportCSV()" class="btn-export">📥 Export CSV</button>
+        <input type="text" class="search" id="searchBox" placeholder="🔍 Search laptops..." onkeyup="filterTable()">
+        <button onclick="exportCSV()" class="btn btn-export">📥 Export CSV</button>
       </div>
       <div style="overflow-x:auto;">
         <table>
@@ -170,7 +186,7 @@
               <th>Status</th>
               <th>Last Seen</th>
               <th>Location</th>
-              <th>Action</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -179,7 +195,6 @@
     </div>
   </div>
 
-  <!-- Edit Modal -->
   <div id="editModal" class="modal">
     <div class="modal-box">
       <h3>Edit Laptop</h3>
@@ -194,30 +209,25 @@
     </div>
   </div>
 
-  <!-- Video Modal -->
   <div id="videoModal" class="video-modal">
-    <div class="close-video" onclick="closeVideo()">×</div>
+    <span class="close-video" onclick="closeVideo()">×</span>
     <div class="video-box">
-      <h3 style="margin-bottom:10px;">️ Why Use Laptop Tracker?</h3>
-      <p style="margin-bottom:15px; color:#666;">Learn how we help recover lost devices.</p>
+      <h3 style="margin-bottom:10px;">🎥 Why Use Laptop Tracker?</h3>
+      <p style="margin-bottom:15px; opacity:0.8;">Learn how we help recover lost devices.</p>
       <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
         <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" 
           src="https://www.youtube.com/embed/R807P2O5xGQ" 
-          title="Demo Video" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen></iframe>
+          title="Demo Video" allowfullscreen></iframe>
       </div>
     </div>
   </div>
 
   <script>
-    // LOADER: Hide when page fully loads
     window.addEventListener('load', () => {
       const l = document.getElementById('page-loader');
       if(l) { l.style.opacity='0'; setTimeout(()=>l.style.display='none', 500); }
     });
 
-    // SUBSCRIPTION CHECK
     (async function checkSubscription() {
       const token = localStorage.getItem('token');
       if(!token) return window.location.href='/';
@@ -229,13 +239,11 @@
       } catch(e) {}
     })();
 
-    // VIDEO MODAL LOGIC
     window.openVideo = () => document.getElementById('videoModal').style.display = 'flex';
     window.closeVideo = () => {
       document.getElementById('videoModal').style.display = 'none';
       const iframe = document.querySelector('.video-box iframe');
-      const src = iframe.src;
-      iframe.src = src;
+      iframe.src = iframe.src;
     };
 
     const token = localStorage.getItem('token');
@@ -245,14 +253,19 @@
     const html = document.documentElement;
     const savedTheme = localStorage.getItem('theme') || 'light';
     html.setAttribute('data-theme', savedTheme);
-    document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '️' : '🌙';
+    updateThemeIcon(savedTheme);
+    
     window.toggleTheme = () => {
       const current = html.getAttribute('data-theme');
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
-      document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+      updateThemeIcon(next);
     };
+    
+    function updateThemeIcon(theme) {
+      document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
 
     async function loadData() {
       const res = await fetch('/api/laptops', { headers: auth });
@@ -266,14 +279,14 @@
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
       if(laptops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#666;padding:20px;">No laptops yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--light);">No laptops yet. Add one above!</td></tr>';
         return;
       }
       laptops.forEach(l => {
         const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : 'Never';
         const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : 'Unknown';
-        const statusColor = l.stolen ? '#dc2626' : l.status==='Active' ? '#10b981' : '#f59e0b';
-        const statusText = l.stolen ? ' STOLEN' : (l.status || 'Active');
+        const statusColor = l.stolen ? '#ef4444' : l.status==='Active' ? '#10b981' : '#f59e0b';
+        const statusText = l.stolen ? '🚨 STOLEN' : (l.status || 'Active');
         
         tbody.innerHTML += `
           <tr>
@@ -286,13 +299,13 @@
             <td>${lastSeen}</td>
             <td>${location}</td>
             <td>
-              <button class="btn-track" onclick="viewLocation('${l.id}')"> Track</button>
-              <button class="btn-edit" onclick="openEdit('${l.id}')">Edit</button>
+              <button class="btn-sm btn-track" onclick="viewLocation('${l.id}')">📍Track</button>
+              <button class="btn-sm btn-edit" onclick="openEdit('${l.id}')">✏️</button>
               ${l.stolen 
-                ? `<button class="btn-safe" onclick="toggleStolen('${l.id}', false)">Mark Safe</button>`
-                : `<button class="btn-stolen" onclick="toggleStolen('${l.id}', true)">Mark Stolen</button>`
+                ? `<button class="btn-sm btn-safe" onclick="toggleStolen('${l.id}', false)">✅Safe</button>`
+                : `<button class="btn-sm btn-stolen" onclick="toggleStolen('${l.id}', true)">🚨Stolen</button>`
               }
-              <button class="btn-del" onclick="deleteItem('${l.id}')">Delete</button>
+              <button class="btn-sm btn-del" onclick="deleteItem('${l.id}')">🗑️</button>
             </td>
           </tr>
         `;
@@ -300,30 +313,39 @@
     }
 
     function updateStats() {
-      const t1 = document.getElementById('st-tot');
-      const t2 = document.getElementById('st-act');
-      const t3 = document.getElementById('st-stolen');
-      if(t1) t1.textContent = laptops.length;
-      if(t2) t2.textContent = laptops.filter(x => !x.stolen).length;
-      if(t3) t3.textContent = laptops.filter(x => x.stolen).length;
+      document.getElementById('st-tot').textContent = laptops.length;
+      document.getElementById('st-act').textContent = laptops.filter(x => !x.stolen).length;
+      document.getElementById('st-stolen').textContent = laptops.filter(x => x.stolen).length;
     }
 
     document.getElementById('addForm').onsubmit = async(e) => {
       e.preventDefault();
-      const data = { brand: document.getElementById('brand').value, model: document.getElementById('model').value, serialNumber: document.getElementById('serial').value, ram: document.getElementById('ram').value, storage: document.getElementById('storage').value, status: document.getElementById('status').value, notes: document.getElementById('notes').value };
-      const res = await fetch('/api/laptops', { method:'POST', headers:{...auth,'Content-Type':'application/json'}, body:JSON.stringify(data) });
+      const data = { 
+        brand: document.getElementById('brand').value, 
+        model: document.getElementById('model').value, 
+        serialNumber: document.getElementById('serial').value, 
+        ram: document.getElementById('ram').value, 
+        storage: document.getElementById('storage').value, 
+        status: document.getElementById('status').value, 
+        notes: document.getElementById('notes').value 
+      };
+      const res = await fetch('/api/laptops', { 
+        method:'POST', 
+        headers:{...auth,'Content-Type':'application/json'}, 
+        body:JSON.stringify(data) 
+      });
       if(res.ok) {
-        document.getElementById('msg').textContent = '✅ Added!';
+        document.getElementById('msg').textContent = '✅ Laptop added successfully!';
         setTimeout(()=>document.getElementById('msg').textContent='', 3000);
         e.target.reset();
         loadData();
-      } else alert('Failed to add');
+      } else alert('Failed to add laptop');
     };
 
     window.deleteItem = async(id) => {
-      if(!confirm('Delete this laptop?')) return;
-      try { const res = await fetch(`/api/laptops/${id}`, { method:'DELETE', headers:auth }); if(res.ok) loadData(); else alert('Failed to delete'); }
-      catch(err) { alert('Error: '+err.message); }
+      if(!confirm('Delete this laptop permanently?')) return;
+      const res = await fetch(`/api/laptops/${id}`, { method:'DELETE', headers:auth });
+      if(res.ok) loadData(); else alert('Failed to delete');
     };
 
     window.openEdit = (id) => {
@@ -340,14 +362,30 @@
 
     window.saveEdit = async() => {
       const id = document.getElementById('saveBtn').dataset.id;
-      const data = { brand: document.getElementById('e-brand').value, model: document.getElementById('e-model').value, serialNumber: document.getElementById('e-serial').value, ram: document.getElementById('e-ram').value, storage: document.getElementById('e-storage').value, status: document.getElementById('e-status').value };
-      const res = await fetch(`/api/laptops/${id}`, { method:'PUT', headers:{...auth,'Content-Type':'application/json'}, body:JSON.stringify(data) });
-      if(res.ok) { document.getElementById('editModal').style.display='none'; loadData(); } else alert('Failed to update');
+      const data = { 
+        brand: document.getElementById('e-brand').value, 
+        model: document.getElementById('e-model').value, 
+        serialNumber: document.getElementById('e-serial').value, 
+        ram: document.getElementById('e-ram').value, 
+        storage: document.getElementById('e-storage').value, 
+        status: document.getElementById('e-status').value 
+      };
+      const res = await fetch(`/api/laptops/${id}`, { 
+        method:'PUT', 
+        headers:{...auth,'Content-Type':'application/json'}, 
+        body:JSON.stringify(data) 
+      });
+      if(res.ok) { 
+        document.getElementById('editModal').style.display='none'; 
+        loadData(); 
+      } else alert('Failed to update');
     };
 
     window.filterTable = () => {
       const q = document.getElementById('searchBox').value.toLowerCase();
-      document.querySelectorAll('#tbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+      document.querySelectorAll('#tbody tr').forEach(r => { 
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; 
+      });
     };
 
     window.exportCSV = () => {
@@ -356,7 +394,8 @@
       laptops.forEach(l => {
         const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : '';
         const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : '';
-        let row = [l.brand||"",l.model||"",l.serialNumber||"",l.ram||"",l.storage||"",l.status||"",l.notes||"",lastSeen,location,l.stolen?"Yes":"No"].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
+        let row = [l.brand||"",l.model||"",l.serialNumber||"",l.ram||"",l.storage||"",l.status||"",l.notes||"",lastSeen,location,l.stolen?"Yes":"No"]
+          .map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
         csvContent += row + "\n";
       });
       const encodedUri = encodeURI(csvContent);
@@ -366,30 +405,17 @@
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
     };
 
-    // TRACKING FUNCTIONS
     window.viewLocation = async (id) => {
       try {
         const res = await fetch(`/api/laptops/${id}/location`, { headers: auth });
         const data = await res.json();
-        
         if (!res.ok) return alert(data.error);
-        
         const loc = data.lastLocation;
         if (!loc || !loc.city) {
-          return alert(' No location data yet. Laptop needs to check in first.\n\nUsers can visit the check-in page to report location.');
+          return alert('📍 No location data yet. The laptop needs to check in first.');
         }
-        
         const mapUrl = `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`;
-        const msg = ` Last Known Location:\n\n` +
-                    `City: ${loc.city}\n` +
-                    `Region: ${loc.region}\n` +
-                    `Country: ${loc.country}\n` +
-                    `Coordinates: ${loc.latitude}, ${loc.longitude}\n` +
-                    `Timezone: ${loc.timezone}\n` +
-                    `IP Address: ${data.lastIpAddress}\n` +
-                    `Last Seen: ${new Date(data.lastSeen).toLocaleString()}\n\n` +
-                    `Status: ${data.stolen ? '🚨 STOLEN' : '✅ Active'}`;
-        
+        const msg = `📍 Last Known Location:\n\nCity: ${loc.city}\nRegion: ${loc.region}\nCountry: ${loc.country}\nCoordinates: ${loc.latitude}, ${loc.longitude}\nLast Seen: ${new Date(data.lastSeen).toLocaleString()}\n\nStatus: ${data.stolen ? '🚨 STOLEN' : '✅ Active'}`;
         if (confirm(msg + '\n\nOpen in Google Maps?')) {
           window.open(mapUrl, '_blank');
         }
@@ -400,25 +426,19 @@
 
     window.toggleStolen = async (id, stolen) => {
       const confirmMsg = stolen 
-        ? '🚨 MARK AS STOLEN?\n\nThis will:\n- Alert the admin\n- Track last known location\n- Add to stolen database'
-        : '✅ Mark as safe?';
-      
+        ? '🚨 MARK AS STOLEN?\n\nThis will alert the admin and track the last known location.'
+        : '✅ Mark this laptop as safe?';
       if (!confirm(confirmMsg)) return;
-      
       try {
         const res = await fetch(`/api/laptops/${id}/stolen`, {
           method: 'PUT',
           headers: { ...auth, 'Content-Type': 'application/json' },
           body: JSON.stringify({ stolen })
         });
-        
         if (res.ok) {
-          alert(stolen ? '🚨 Laptop marked as STOLEN! Admin has been notified.' : '✅ Laptop marked as safe.');
+          alert(stolen ? '🚨 Laptop marked as STOLEN!' : '✅ Laptop marked as safe.');
           loadData();
-        } else {
-          const data = await res.json();
-          alert('Failed: ' + data.error);
-        }
+        } else alert('Failed: ' + (await res.json()).error);
       } catch (err) {
         alert('Error: ' + err.message);
       }

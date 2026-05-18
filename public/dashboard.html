@@ -7,6 +7,21 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2563eb">
   <style>
+    /* LOADER STYLES */
+    #page-loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg); z-index: 9999; display: flex;
+      align-items: center; justify-content: center; transition: opacity 0.5s ease;
+    }
+    .loader-ring {
+      width: 70px; height: 70px; border: 4px solid var(--border);
+      border-top: 4px solid var(--primary); border-radius: 50%;
+      animation: spin 1s linear infinite; margin: 0 auto 15px;
+    }
+    .loader-logo { width: 40px; height: 40px; object-fit: contain; margin-bottom: 10px; }
+    .loader-text { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     :root { --primary:#2563eb; --danger:#dc2626; --bg:#f3f4f6; --card:#fff; --text:#1f2937; --light:#6b7280; --border:#e5e7eb; --stat-blue-bg:#e0f2fe; --stat-blue-text:#0369a1; --stat-green-bg:#dcfce7; --stat-green-text:#15803d; --stat-red-bg:#fee2e2; --stat-red-text:#b91c1c; }
     [data-theme="dark"] { --bg:#121212; --card:#1e1e1e; --text:#e0e0e0; --light:#a0a0a0; --border:#333; --stat-blue-bg:#1e3a8a; --stat-blue-text:#93c5fd; --stat-green-bg:#14532d; --stat-green-text:#4ade80; --stat-red-bg:#7f1d1d; --stat-red-text:#f87171; }
     body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; transition:background 0.3s, color 0.3s; }
@@ -57,6 +72,15 @@
   </style>
 </head>
 <body>
+  <!-- LOADER -->
+  <div id="page-loader">
+    <div style="text-align:center">
+      <img src="/logo.png" alt="Logo" class="loader-logo">
+      <div class="loader-ring"></div>
+      <div class="loader-text">Loading Dashboard...</div>
+    </div>
+  </div>
+
   <div class="wrap">
     <div class="header">
       <div class="logo-area"><img src="/logo.png" alt="Logo"><h1>Laptop Tracker</h1></div>
@@ -77,16 +101,6 @@
     <div class="card">
       <h2>Add New Laptop</h2>
       <form id="addForm">
-<div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border-radius: 10px; border-left: 4px solid #3b82f6;">
-  <p style="margin: 0 0 10px; font-weight: 600;">🤖 Enable Auto-Tracking</p>
-  <p style="margin: 0 0 10px; font-size: 0.9rem; color: var(--light);">
-    Download auto-checkin script for this laptop. Keep browser tab open for auto location reports.
-  </p>
-  <a id="autoTrackLink" href="/tracker.html" target="_blank" 
-     style="display: inline-block; padding: 8px 16px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-size: 0.9rem;">
-    📥 Download Auto-Tracker
-  </a>
-</div>
         <div class="grid">
           <input type="text" id="brand" placeholder="Brand" required>
           <input type="text" id="model" placeholder="Model" required>
@@ -160,6 +174,12 @@
   </div>
 
   <script>
+    // LOADER: Hide when page fully loads
+    window.addEventListener('load', () => {
+      const l = document.getElementById('page-loader');
+      if(l) { l.style.opacity='0'; setTimeout(()=>l.style.display='none', 500); }
+    });
+
     // SUBSCRIPTION CHECK
     (async function checkSubscription() {
       const token = localStorage.getItem('token');
@@ -216,7 +236,7 @@
         const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : 'Never';
         const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : 'Unknown';
         const statusColor = l.stolen ? '#dc2626' : l.status==='Active' ? '#10b981' : '#f59e0b';
-        const statusText = l.stolen ? '🚨 STOLEN' : (l.status || 'Active');
+        const statusText = l.stolen ? ' STOLEN' : (l.status || 'Active');
         
         tbody.innerHTML += `
           <tr>
@@ -229,7 +249,7 @@
             <td>${lastSeen}</td>
             <td>${location}</td>
             <td>
-              <button class="btn-track" onclick="viewLocation('${l.id}')">📍 Track</button>
+              <button class="btn-track" onclick="viewLocation('${l.id}')"> Track</button>
               <button class="btn-edit" onclick="openEdit('${l.id}')">Edit</button>
               ${l.stolen 
                 ? `<button class="btn-safe" onclick="toggleStolen('${l.id}', false)">Mark Safe</button>`
@@ -319,7 +339,7 @@
         
         const loc = data.lastLocation;
         if (!loc || !loc.city) {
-          return alert('📍 No location data yet. Laptop needs to check in first.\n\nUsers can visit the check-in page to report location.');
+          return alert(' No location data yet. Laptop needs to check in first.\n\nUsers can visit the check-in page to report location.');
         }
         
         const mapUrl = `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`;
@@ -366,13 +386,7 @@
         alert('Error: ' + err.message);
       }
     };
-// Update auto-track link with current laptop ID (if editing)
-function updateAutoTrackLink(laptopId) {
-  const link = document.getElementById('autoTrackLink');
-  if (link && laptopId) {
-    link.href = `/tracker.html?id=${laptopId}`;
-  }
-}
+
     window.logout = () => { localStorage.removeItem('token'); window.location.href='/'; };
     loadData();
   </script>

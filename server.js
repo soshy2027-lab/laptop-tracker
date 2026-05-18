@@ -12,6 +12,34 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_change_in_env';
 
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
+// 🔒 Security Headers (Helmet)
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled temporarily to allow Google Sign-In
+  crossOriginEmbedderPolicy: false
+}));
+
+// 🛡️ Rate Limiting (Brute Force Protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login/register attempts
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // Limit each IP to 60 API requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply limits
+app.use('/api/auth/', authLimiter); // Strict limit for login/register
+app.use('/api/', apiLimiter);       // General limit for other API calls
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));

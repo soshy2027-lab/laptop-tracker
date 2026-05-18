@@ -11,7 +11,9 @@
       "name": "Admin",
       "email": "admin@laptoptracker.com",
       "password": "admin232",
-      "role": "user"
+      "role": "admin",
+      "isSubscribed": true,
+      "subscriptionExpiryDate": "2099-12-31T00:00:00.000Z"
     },
     {
       "id": "1778197479548",

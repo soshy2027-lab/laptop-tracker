@@ -306,6 +306,10 @@ app.post('/api/subscription/activate', protect, (req, res) => {
 const checkSub = (req, res, next) => {
   const db = loadDB();
   const user = db.users.find(u => u.id === req.user.id);
+  // ✅ Admin users are exempt from subscription checks
+  if (user && user.role === 'admin') {
+    return next();
+  }
   if (getSubscriptionStatus(user).status === 'expired') {
     return res.status(403).json({ error: 'Subscription expired. Please renew.' });
   }

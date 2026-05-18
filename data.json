@@ -10,7 +10,7 @@
       "id": "1778194502472",
       "name": "Admin",
       "email": "admin@laptoptracker.com",
-      "password": "admin232",
+      "password": "$2b$10$Yk9NkVfmoC9Muf3fC/SR6e7xg.cwHQ5tpfArI7jO2lxm9LNik0pWy",
       "role": "admin",
       "isSubscribed": true,
       "subscriptionExpiryDate": "2099-12-31T00:00:00.000Z"

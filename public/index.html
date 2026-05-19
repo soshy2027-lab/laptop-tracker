@@ -275,7 +275,12 @@
       try {
         const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) });
         const data = await res.json();
-        if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
+        if (res.ok) { 
+          localStorage.setItem('token', data.token); 
+          // SHOW ALERT INSTRUCTING USER TO CHECK EMAIL
+          alert(`✅ Account created successfully!\n\n Please check your email (${email}) to verify your account.`);
+          window.location.href = '/dashboard'; 
+        }
         else showError(data.error);
       } catch (err) { showError("Network error"); }
     }

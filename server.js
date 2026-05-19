@@ -131,7 +131,7 @@ app.post('/api/auth/register', async (req, res) => {
   db.users.push(user); saveDB(db);
   
   // Send email
-  await sendConfirmationEmail(user);
+ // await sendConfirmationEmail(user);
   
   const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
   res.status(201).json({ token, user: { id: user.id, name, email, role: user.role } });
@@ -164,7 +164,7 @@ app.post('/api/auth/login', async (req, res) => {
   const db = loadDB();
   const user = db.users.find(u => u.email === email);
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-  if (!user.verified && user.provider === 'local') return res.status(403).json({ error: 'Please verify your email first. Check your inbox.' });
+ // if (!user.verified && user.provider === 'local') return res.status(403).json({ error: 'Please verify your email first. Check your inbox.' });
   
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(400).json({ error: 'Invalid credentials' });

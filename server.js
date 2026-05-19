@@ -138,7 +138,7 @@ app.post('/api/auth/register', async (req, res) => {
     trialEndDate: trialEndDate.toISOString(), isSubscribed: false, subscriptionExpiryDate: null, provider: 'local'
   };
   db.users.push(user); saveDB(db);
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
   res.status(201).json({ token, user: { id: user.id, name, email, role: user.role } });
 });
 
@@ -149,7 +149,7 @@ app.post('/api/auth/google', async (req, res) => {
     const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
     const payload = ticket.getPayload();
     const user = findOrCreateUser(payload.email, payload.name, true);
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch { res.status(401).json({ error: 'Invalid Google Token' }); }
 });
@@ -161,7 +161,7 @@ app.post('/api/auth/login', async (req, res) => {
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, user: { id: user.id, name: user.name, email, role: user.role } });
 });
 

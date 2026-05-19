@@ -5,21 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laptop Tracker Dashboard</title>
   <style>
-    /* LOADER */
-    #page-loader {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg); z-index: 9999; display: flex;
-      align-items: center; justify-content: center; transition: opacity 0.5s ease;
-    }
-    .loader-ring {
-      width: 70px; height: 70px; border: 4px solid #4b5563;
-      border-top: 4px solid #2563eb; border-radius: 50%;
-      animation: spin 1s linear infinite; margin: 0 auto 15px;
-    }
-    .loader-logo { width: 40px; height: 40px; object-fit: contain; margin-bottom: 10px; }
-    .loader-text { color: #2563eb; font-weight: bold; font-size: 1.1rem; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
     :root { 
       --primary:#2563eb; --danger:#dc2626; 
       --bg:#f3f4f6; --card:#ffffff; 
@@ -46,7 +31,7 @@
     
     .header-buttons { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn { padding:10px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem; }
-    .btn-demo { background:#f59e0b; color:#fff; }
+    .btn-watch { background:#f59e0b; color:#fff; }
     .btn-sub { background:#06b6d4; color:#fff; }
     .btn-logout { background:#475569; color:#fff; }
     .btn-theme { 
@@ -67,7 +52,6 @@
     
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
     
-    /* STRONG BORDERS FOR INPUTS */
     input,select { 
       width:100%; padding:14px; 
       border: 2px solid var(--border); 
@@ -113,6 +97,28 @@
     .video-box { background:var(--card); padding:20px; border-radius:12px; width:90%; max-width:700px; color:var(--text); text-align:center; position:relative; }
     .close-video { position:absolute; top:15px; right:20px; color:#fff; font-size:2.5rem; cursor:pointer; line-height:1; }
     
+    .tracker-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .tracker-box h3 { margin: 0 0 10px; }
+    .btn-download {
+      background: white;
+      color: #667eea;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
     @media(max-width:768px){ 
       .stats{flex-direction:column;} 
       table{font-size:0.8rem;} 
@@ -123,14 +129,6 @@
   </style>
 </head>
 <body>
-  <div id="page-loader">
-    <div style="text-align:center">
-      <img src="/logo.png" alt="Logo" class="loader-logo">
-      <div class="loader-ring"></div>
-      <div class="loader-text">Loading...</div>
-    </div>
-  </div>
-
   <div class="wrap">
     <div class="header">
       <div class="logo-area">
@@ -138,11 +136,18 @@
         <h1>Laptop Tracker</h1>
       </div>
       <div class="header-buttons">
-        <button class="btn btn-demo" onclick="openVideo()">🎥 Demo</button>
-        <button class="btn btn-sub" onclick="window.location.href='/subscription'">💎 Subscribe</button>
+        <button class="btn btn-watch" onclick="openVideo()">🎥 Watch</button>
+        <button class="btn btn-sub" onclick="window.location.href='/subscription'"> Subscribe</button>
         <button class="btn btn-theme" id="themeToggle" onclick="toggleTheme()">🌙</button>
         <button class="btn btn-logout" onclick="logout()">Logout</button>
       </div>
+    </div>
+
+    <!-- TRACKER DOWNLOAD BOX -->
+    <div class="tracker-box">
+      <h3> Auto-Tracker for Your Laptop</h3>
+      <p>Download this page and keep it open on your laptop to auto-report location every 5 minutes.</p>
+      <a href="/tracker.html" target="_blank" class="btn-download">📥 Open Tracker Page</a>
     </div>
 
     <div class="stats">
@@ -172,7 +177,7 @@
       <h2>My Laptops</h2>
       <div class="search-row">
         <input type="text" class="search" id="searchBox" placeholder="🔍 Search laptops..." onkeyup="filterTable()">
-        <button onclick="exportCSV()" class="btn btn-export">📥 Export CSV</button>
+        <button onclick="exportCSV()" class="btn btn-export"> Export CSV</button>
       </div>
       <div style="overflow-x:auto;">
         <table>
@@ -195,6 +200,7 @@
     </div>
   </div>
 
+  <!-- EDIT MODAL -->
   <div id="editModal" class="modal">
     <div class="modal-box">
       <h3>Edit Laptop</h3>
@@ -209,25 +215,24 @@
     </div>
   </div>
 
+  <!-- VIDEO MODAL -->
   <div id="videoModal" class="video-modal">
     <span class="close-video" onclick="closeVideo()">×</span>
     <div class="video-box">
       <h3 style="margin-bottom:10px;">🎥 Why Use Laptop Tracker?</h3>
       <p style="margin-bottom:15px; opacity:0.8;">Learn how we help recover lost devices.</p>
       <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
-        <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" 
-          src="https://www.youtube.com/embed/R807P2O5xGQ" 
-          title="Demo Video" allowfullscreen></iframe>
+        <iframe id="videoFrame" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" 
+          src=""
+          title="Demo Video" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen></iframe>
       </div>
     </div>
   </div>
 
   <script>
-    window.addEventListener('load', () => {
-      const l = document.getElementById('page-loader');
-      if(l) { l.style.opacity='0'; setTimeout(()=>l.style.display='none', 500); }
-    });
-
+    // SUBSCRIPTION CHECK (Admins skip this)
     (async function checkSubscription() {
       const token = localStorage.getItem('token');
       if(!token) return window.location.href='/';
@@ -235,17 +240,27 @@
       try {
         const res = await fetch('/api/subscription/status', { headers: auth });
         const data = await res.json();
+        // If user role is admin, skip redirect
+        const userRes = await fetch('/api/admin/users', { headers: auth });
+        if (userRes.ok) return; // Is Admin
+        
         if(data.status === 'expired') window.location.href = '/subscription';
       } catch(e) {}
     })();
 
-    window.openVideo = () => document.getElementById('videoModal').style.display = 'flex';
+    // VIDEO LOGIC
+    window.openVideo = () => {
+      document.getElementById('videoModal').style.display = 'flex';
+      // Replace with your actual YouTube Video ID
+      document.getElementById('videoFrame').src = 'https://www.youtube.com/embed/R807P2O5xGQ?autoplay=1';
+    };
+    
     window.closeVideo = () => {
       document.getElementById('videoModal').style.display = 'none';
-      const iframe = document.querySelector('.video-box iframe');
-      iframe.src = iframe.src;
+      document.getElementById('videoFrame').src = '';
     };
 
+    // DARK MODE LOGIC
     const token = localStorage.getItem('token');
     const auth = { 'Authorization': `Bearer ${token}` };
     let laptops = [];
@@ -415,7 +430,7 @@
           return alert('📍 No location data yet. The laptop needs to check in first.');
         }
         const mapUrl = `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`;
-        const msg = `📍 Last Known Location:\n\nCity: ${loc.city}\nRegion: ${loc.region}\nCountry: ${loc.country}\nCoordinates: ${loc.latitude}, ${loc.longitude}\nLast Seen: ${new Date(data.lastSeen).toLocaleString()}\n\nStatus: ${data.stolen ? '🚨 STOLEN' : '✅ Active'}`;
+        const msg = `📍 Last Known Location:\n\nCity: ${loc.city}\nRegion: ${loc.region}\nCountry: ${loc.country}\nCoordinates: ${loc.latitude}, ${loc.longitude}\nLast Seen: ${new Date(data.lastSeen).toLocaleString()}\n\nStatus: ${data.stolen ? ' STOLEN' : '✅ Active'}`;
         if (confirm(msg + '\n\nOpen in Google Maps?')) {
           window.open(mapUrl, '_blank');
         }
@@ -436,7 +451,7 @@
           body: JSON.stringify({ stolen })
         });
         if (res.ok) {
-          alert(stolen ? '🚨 Laptop marked as STOLEN!' : '✅ Laptop marked as safe.');
+          alert(stolen ? ' Laptop marked as STOLEN!' : '✅ Laptop marked as safe.');
           loadData();
         } else alert('Failed: ' + (await res.json()).error);
       } catch (err) {

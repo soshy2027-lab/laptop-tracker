@@ -250,10 +250,9 @@
 
     // VIDEO LOGIC
     window.openVideo = () => {
-      document.getElementById('videoModal').style.display = 'flex';
-      // Replace with your actual YouTube Video ID
-      document.getElementById('videoFrame').src = 'https://www.youtube.com/embed/R807P2O5xGQ?autoplay=1';
-    };
+  // Opens YouTube directly in new tab
+  window.open('https://www.youtube.com/watch?v=R807P2O5xGQ', '_blank');
+};
     
     window.closeVideo = () => {
       document.getElementById('videoModal').style.display = 'none';

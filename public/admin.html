@@ -3,152 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - Laptop Tracker</title>
+  <title>Admin Dashboard - Laptop Tracker</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #f3f4f6;
       min-height: 100vh;
       padding: 20px;
     }
     .container {
-      max-width: 1200px;
+      max-width: 1000px;
       margin: 0 auto;
       background: white;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 30px;
-      padding-bottom: 20px;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
       border-bottom: 2px solid #e5e7eb;
     }
-    .header h1 { color: #2563eb; }
+    .header h1 { color: #2563eb; font-size: 1.5rem; }
     .btn-logout {
-      padding: 10px 20px;
       background: #dc2626;
       color: white;
       border: none;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: bold;
     }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab {
-      padding: 12px 24px;
-      background: #f3f4f6;
+      flex: 1;
+      padding: 12px;
+      background: #e5e7eb;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      color: #6b7280;
+      text-align: center;
     }
-    .tab.active {
-      background: #2563eb;
-      color: white;
-    }
+    .tab.active { background: #2563eb; color: white; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+    .stat-card {
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
     }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    th {
-      background: #f9fafb;
-      font-weight: 600;
-      color: #374151;
-    }
+    .stat-card h3 { color: #1e40af; font-size: 0.9rem; margin-bottom: 5px; }
+    .stat-card p { font-size: 1.5rem; font-weight: bold; color: #1e3a8a; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f9fafb; font-weight: 600; }
     .badge {
-      padding: 4px 12px;
+      padding: 4px 8px;
       border-radius: 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: bold;
     }
-    .badge-trial { background: #fef3c7; color: #92400e; }
     .badge-active { background: #d1fae5; color: #065f46; }
     .badge-expired { background: #fee2e2; color: #991b1b; }
-    .badge-stolen { background: #fee2e2; color: #dc2626; font-weight: bold; }
-    .error {
-      background: #fee2e2;
-      color: #dc2626;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      margin: 40px 0;
-    }
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #6b7280;
-    }
+    .badge-trial { background: #fef3c7; color: #92400e; }
+    .loading { text-align: center; padding: 40px; color: #6b7280; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>🔐 Admin Panel</h1>
+      <h1>🔐 Admin Dashboard</h1>
       <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
 
-    <div id="errorBox" class="error" style="display:none;"></div>
+    <div id="errorBox" style="display:none; color:#dc2626; background:#fee2e2; padding:15px; border-radius:8px; margin-bottom:20px; text-align:center;"></div>
 
     <div class="tabs">
       <button class="tab active" onclick="switchTab('users')">👥 Users</button>
-      <button class="tab" onclick="switchTab('laptops')">💻 All Laptops</button>
-      <button class="tab" onclick="switchTab('stolen')">🚨 Stolen Devices</button>
+      <button class="tab" onclick="switchTab('laptops')">💻 Laptops</button>
+      <button class="tab" onclick="switchTab('stolen')">🚨 Stolen</button>
     </div>
 
     <div id="usersTab" class="tab-content active">
-      <h2>Registered Users</h2>
-      <div id="usersList" class="loading">Loading...</div>
+      <div class="stat-card">
+        <h3>Total Registered Users</h3>
+        <p id="userCount">...</p>
+      </div>
+      <div id="usersList" class="loading">Loading Users...</div>
     </div>
 
     <div id="laptopsTab" class="tab-content">
-      <h2>All Laptops</h2>
-      <div id="laptopsList" class="loading">Loading...</div>
+      <div class="stat-card">
+        <h3>Total Laptops</h3>
+        <p id="laptopCount">...</p>
+      </div>
+      <div id="laptopsList" class="loading">Loading Laptops...</div>
     </div>
 
     <div id="stolenTab" class="tab-content">
-      <h2>🚨 Stolen Devices</h2>
-      <div id="stolenList" class="loading">Loading...</div>
+      <div class="stat-card" style="background:#fef2f2; border-left-color:#dc2626;">
+        <h3>Reported Stolen Devices</h3>
+        <p id="stolenCount" style="color:#991b1b">...</p>
+      </div>
+      <div id="stolenList" class="loading">Loading Stolen Reports...</div>
     </div>
   </div>
 
   <script>
     const token = localStorage.getItem('token');
     
-    // Check if logged in
+    // SECURITY CHECK: Redirect immediately if no token
     if (!token) {
       window.location.href = '/';
     }
 
-    // Verify admin role
-    async function checkAdmin() {
+    // VERIFY ADMIN STATUS
+    async function verifyAdmin() {
       try {
         const res = await fetch('/api/admin/users', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.status === 403) {
-          alert('Admin access required!');
+          alert('❌ Access Denied: Admin privileges required.');
           window.location.href = '/dashboard';
           return false;
         }
-        if (!res.ok) throw new Error('Not authorized');
+        if (!res.ok) throw new Error('Verification failed');
         return true;
       } catch (err) {
         window.location.href = '/';
@@ -156,96 +143,48 @@
       }
     }
 
-    async function loadUsers() {
+    // LOAD DATA
+    async function loadData(type) {
       try {
-        const res = await fetch('/api/admin/users', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const users = await res.json();
-        const div = document.getElementById('usersList');
+        let url = `/api/admin/${type}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
         
-        if (users.length === 0) {
-          div.innerHTML = '<p style="padding:20px;text-align:center;color:#6b7280;">No users yet.</p>';
-          return;
+        if (type === 'users') {
+          document.getElementById('userCount').textContent = data.length;
+          let html = '<table><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody>';
+          data.forEach(u => {
+            let statusClass = u.subscription.status === 'active' ? 'badge-active' : (u.subscription.status === 'trial' ? 'badge-trial' : 'badge-expired');
+            html += `<tr><td>${u.name}</td><td>${u.email}</td><td><span class="badge ${statusClass}">${u.subscription.status.toUpperCase()}</span></td></tr>`;
+          });
+          html += '</tbody></table>';
+          document.getElementById('usersList').innerHTML = html;
+        } 
+        else if (type === 'laptops') {
+          document.getElementById('laptopCount').textContent = data.length;
+          let html = '<table><thead><tr><th>Owner</th><th>Brand/Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
+          data.forEach(l => {
+            html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.brand} ${l.model}</td><td>${l.serialNumber}</td><td>${l.stolen ? '🚨 STOLEN' : '✅ Active'}</td></tr>`;
+          });
+          html += '</tbody></table>';
+          document.getElementById('laptopsList').innerHTML = html;
+        } 
+        else if (type === 'stolen') {
+          document.getElementById('stolenCount').textContent = data.length;
+          if (data.length === 0) {
+            document.getElementById('stolenList').innerHTML = '<p style="padding:20px;text-align:center;color:#6b7280;"> No stolen devices reported!</p>';
+          } else {
+            let html = '<table><thead><tr><th>Owner</th><th>Device</th><th>Date Reported</th></tr></thead><tbody>';
+            data.forEach(l => {
+              let date = l.reportedStolenAt ? new Date(l.reportedStolenAt).toLocaleDateString() : 'Unknown';
+              html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.brand} ${l.model}</td><td>${date}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('stolenList').innerHTML = html;
+          }
         }
-
-        let html = '<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Subscription</th></tr></thead><tbody>';
-        users.forEach(u => {
-          const subStatus = u.subscription.status === 'trial' ? 'Trial' : u.subscription.status === 'active' ? 'Active' : 'Expired';
-          const badgeClass = u.subscription.status === 'trial' ? 'badge-trial' : u.subscription.status === 'active' ? 'badge-active' : 'badge-expired';
-          html += `<tr>
-            <td>${u.name}</td>
-            <td>${u.email}</td>
-            <td>${u.role === 'admin' ? '🔑 Admin' : 'User'}</td>
-            <td><span class="badge ${badgeClass}">${subStatus}</span></td>
-          </tr>`;
-        });
-        html += '</tbody></table>';
-        div.innerHTML = html;
       } catch (err) {
-        document.getElementById('usersList').innerHTML = '<p style="padding:20px;text-align:center;color:#dc2626;">Failed to load users</p>';
-      }
-    }
-
-    async function loadLaptops() {
-      try {
-        const res = await fetch('/api/admin/laptops', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const laptops = await res.json();
-        const div = document.getElementById('laptopsList');
-        
-        if (laptops.length === 0) {
-          div.innerHTML = '<p style="padding:20px;text-align:center;color:#6b7280;">No laptops registered yet.</p>';
-          return;
-        }
-
-        let html = '<table><thead><tr><th>Owner</th><th>Brand</th><th>Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
-        laptops.forEach(l => {
-          const statusClass = l.stolen ? 'badge-stolen' : 'badge-active';
-          html += `<tr>
-            <td>${l.ownerName || 'Unknown'}</td>
-            <td>${l.brand}</td>
-            <td>${l.model}</td>
-            <td>${l.serialNumber}</td>
-            <td><span class="badge ${statusClass}">${l.stolen ? 'STOLEN' : l.status}</span></td>
-          </tr>`;
-        });
-        html += '</tbody></table>';
-        div.innerHTML = html;
-      } catch (err) {
-        document.getElementById('laptopsList').innerHTML = '<p style="padding:20px;text-align:center;color:#dc2626;">Failed to load laptops</p>';
-      }
-    }
-
-    async function loadStolen() {
-      try {
-        const res = await fetch('/api/admin/stolen', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const laptops = await res.json();
-        const div = document.getElementById('stolenList');
-        
-        if (laptops.length === 0) {
-          div.innerHTML = '<p style="padding:20px;text-align:center;color:#6b7280;">No stolen devices reported. Great! 🎉</p>';
-          return;
-        }
-
-        let html = '<table><thead><tr><th>Owner</th><th>Brand</th><th>Model</th><th>Serial</th><th>Reported</th></tr></thead><tbody>';
-        laptops.forEach(l => {
-          const reportedDate = l.reportedStolenAt ? new Date(l.reportedStolenAt).toLocaleString() : 'Unknown';
-          html += `<tr>
-            <td>${l.ownerName || 'Unknown'}</td>
-            <td>${l.brand}</td>
-            <td>${l.model}</td>
-            <td>${l.serialNumber}</td>
-            <td>${reportedDate}</td>
-          </tr>`;
-        });
-        html += '</tbody></table>';
-        div.innerHTML = html;
-      } catch (err) {
-        document.getElementById('stolenList').innerHTML = '<p style="padding:20px;text-align:center;color:#dc2626;">Failed to load stolen devices</p>';
+        document.getElementById(type + 'List').innerHTML = '<p style="color:red;text-align:center;">Error loading data</p>';
       }
     }
 
@@ -254,10 +193,7 @@
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       event.target.classList.add('active');
       document.getElementById(tab + 'Tab').classList.add('active');
-      
-      if (tab === 'users') loadUsers();
-      if (tab === 'laptops') loadLaptops();
-      if (tab === 'stolen') loadStolen();
+      loadData(tab);
     };
 
     window.logout = () => {
@@ -265,11 +201,11 @@
       window.location.href = '/';
     };
 
-    // Initialize
+    // INITIALIZE
     (async () => {
-      const isAdmin = await checkAdmin();
+      const isAdmin = await verifyAdmin();
       if (isAdmin) {
-        loadUsers();
+        loadData('users');
       }
     })();
   </script>

@@ -15,7 +15,22 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      overflow: hidden;
     }
+    
+    /* LOADING SPINNER */
+    #loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #fff; z-index: 9999; display: flex;
+      align-items: center; justify-content: center; transition: opacity 0.5s ease;
+    }
+    .spinner {
+      width: 50px; height: 50px; border: 5px solid #e5e7eb;
+      border-top: 5px solid #2563eb; border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     .container {
       background: white;
       border-radius: 20px;
@@ -24,63 +39,49 @@
       width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       text-align: center;
+      position: relative;
+      z-index: 10;
     }
-    .logo-img {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 15px;
-      object-fit: contain;
-    }
+    .logo-img { width: 80px; height: 80px; margin: 0 auto 15px; object-fit: contain; }
     h1 { color: #2563eb; margin-bottom: 5px; font-size: 1.5rem; }
     p.subtitle { color: #6b7280; margin-bottom: 25px; font-size: 0.9rem; }
     
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab {
-      flex: 1;
-      padding: 10px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      color: #6b7280;
+      flex: 1; padding: 10px; background: #f3f4f6; border: none;
+      border-radius: 8px; cursor: pointer; font-weight: 600; color: #6b7280;
     }
     .tab.active { background: #2563eb; color: white; }
     
     .form-group { margin-bottom: 15px; text-align: left; position: relative; }
     .form-group label { display: block; margin-bottom: 5px; color: #374151; font-size: 0.9rem; }
     .form-group input {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
+      width: 100%; padding: 12px; border: 2px solid #e5e7eb;
+      border-radius: 8px; font-size: 1rem;
     }
     .form-group input:focus { outline: none; border-color: #2563eb; }
     
-    /* EYE ICON STYLES */
+    /* PASSWORD STRENGTH METER */
+    .strength-meter {
+      height: 5px; background: #e5e7eb; border-radius: 5px;
+      margin-top: 5px; overflow: hidden; transition: background 0.3s;
+    }
+    .strength-fill {
+      height: 100%; width: 0%; transition: width 0.3s, background 0.3s;
+    }
+    .strength-text {
+      font-size: 0.75rem; margin-top: 3px; color: #6b7280; text-align: right;
+    }
+
     .toggle-password {
-      position: absolute;
-      right: 12px;
-      top: 38px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: #6b7280;
+      position: absolute; right: 12px; top: 38px;
+      background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #6b7280;
     }
     
     .btn-primary {
-      width: 100%;
-      padding: 14px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 15px;
+      width: 100%; padding: 14px; background: #2563eb; color: white;
+      border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; margin-bottom: 15px;
     }
     .btn-primary:hover { background: #1d4ed8; }
     
@@ -88,44 +89,44 @@
     .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
     .divider span { padding: 0 10px; }
     
-    .google-btn {
-      width: 100%;
-      padding: 12px;
-      background: white;
-      border: 2px solid #e5e7eb;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      color: #374151;
-    }
-    .google-btn:hover { background: #f9fafb; }
-    
     .hidden { display: none; }
     .error-msg { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; }
     
     .footer-links {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
+      margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;
+      display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
     }
-    .footer-links a {
-      color: #6b7280;
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 500;
+    .footer-links a { color: #6b7280; text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+    
+    /* INSTALL BANNER */
+    .install-banner {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: #2563eb; color: white; padding: 15px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 1000; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
     }
-    .footer-links a:hover { color: #2563eb; text-decoration: underline; }
+    .install-banner button {
+      background: white; color: #2563eb; border: none;
+      padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;
+    }
+    .install-banner .close-banner {
+      background: none; color: white; margin-left: 10px; font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
+  <!-- LOADER -->
+  <div id="loader"><div class="spinner"></div></div>
+
+  <!-- INSTALL BANNER -->
+  <div id="install-banner" class="install-banner" style="display:none;">
+    <span>📱 Install Laptop Tracker App</span>
+    <div>
+      <button onclick="installApp()">Install</button>
+      <button class="close-banner" onclick="document.getElementById('install-banner').style.display='none'">×</button>
+    </div>
+  </div>
+
   <div class="container">
     <img src="logo.png" alt="Logo" class="logo-img">
     <h1>Laptop Tracker</h1>
@@ -167,8 +168,12 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="regPass" placeholder="••••••••">
+        <input type="password" id="regPass" placeholder="••••••••" oninput="checkStrength()">
         <button type="button" class="toggle-password" onclick="togglePass('regPass', this)">👁️</button>
+        
+        <!-- PASSWORD STRENGTH METER -->
+        <div class="strength-meter"><div id="strength-fill" class="strength-fill"></div></div>
+        <div id="strength-text" class="strength-text"></div>
       </div>
       <button class="btn-primary" onclick="handleRegister()">Create Account</button>
     </div>
@@ -181,16 +186,60 @@
   </div>
 
   <script>
-    // PASSWORD TOGGLE
+    // HIDE LOADER
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('loader');
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 500);
+    });
+
+    // INSTALL PROMPT LOGIC
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      setTimeout(() => {
+        document.getElementById('install-banner').style.display = 'flex';
+      }, 2000);
+    });
+
+    window.installApp = () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((result) => {
+          if (result.outcome === 'accepted') {
+            document.getElementById('install-banner').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      }
+    };
+
+    // PASSWORD STRENGTH CHECK
+    window.checkStrength = () => {
+      const val = document.getElementById('regPass').value;
+      const fill = document.getElementById('strength-fill');
+      const text = document.getElementById('strength-text');
+      
+      let strength = 0;
+      if (val.length >= 6) strength++;
+      if (val.match(/[a-z]/) && val.match(/[A-Z]/)) strength++;
+      if (val.match(/\d/)) strength++;
+      if (val.match(/[^a-zA-Z\d]/)) strength++;
+
+      const colors = ['#dc2626', '#f59e0b', '#10b981', '#059669'];
+      const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+      
+      fill.style.width = (strength * 25) + '%';
+      fill.style.background = colors[strength - 1] || '#e5e7eb';
+      text.textContent = val.length > 0 ? labels[strength - 1] || 'Too Short' : '';
+      text.style.color = colors[strength - 1] || '#6b7280';
+    };
+
     window.togglePass = (id, btn) => {
       const input = document.getElementById(id);
-      if (input.type === "password") {
-        input.type = "text";
-        btn.textContent = "🙈";
-      } else {
-        input.type = "password";
-        btn.textContent = "👁️";
-      }
+      if (input.type === "password") { input.type = "text"; btn.textContent = "🙈"; }
+      else { input.type = "password"; btn.textContent = "👁️"; }
     };
 
     window.switchTab = (tab) => {
@@ -203,26 +252,18 @@
 
     function showError(msg) {
       const box = document.getElementById('errorBox');
-      box.textContent = msg;
-      box.classList.remove('hidden');
+      box.textContent = msg; box.classList.remove('hidden');
     }
 
     async function handleLogin() {
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPass').value;
       if (!email || !password) return showError("Please fill in all fields");
-      
       try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+        const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
         const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem('token', data.token);
-          window.location.href = '/dashboard';
-        } else showError(data.error);
+        if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
+        else showError(data.error);
       } catch (err) { showError("Network error"); }
     }
 
@@ -231,33 +272,20 @@
       const email = document.getElementById('regEmail').value;
       const password = document.getElementById('regPass').value;
       if (!name || !email || !password) return showError("Please fill in all fields");
-
       try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
-        });
+        const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) });
         const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem('token', data.token);
-          window.location.href = '/dashboard';
-        } else showError(data.error);
+        if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
+        else showError(data.error);
       } catch (err) { showError("Network error"); }
     }
 
     async function handleGoogleCredentialResponse(response) {
       try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: response.credential })
-        });
+        const res = await fetch('/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
         const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem('token', data.token);
-          window.location.href = '/dashboard';
-        } else showError("Google login failed");
+        if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
+        else showError("Google login failed");
       } catch (err) { showError("Network error"); }
     }
   </script>

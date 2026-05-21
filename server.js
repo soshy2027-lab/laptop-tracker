@@ -173,22 +173,56 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, email, role: user.role } });
 });
 
-app.get('/api/auth/confirm', async (req, res) => {
-  const { token } = req.query;
-  if (!token) return res.status(400).send('Missing verification token.');
-  
+app.get('/api/laptops/:id/checkin', async (req, res) => {
   try {
     const db = loadDB();
-    const idx = db.users.findIndex(u => u.verificationToken === token);
-    if (idx === -1) return res.status(400).send('Invalid or expired link.');
+    const idx = db.laptops.findIndex(l => l.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
     
-    db.users[idx].verified = true;
-    db.users[idx].verificationToken = null;
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+    
+    // Default location structure
+    let locData = {
+      city: 'Unknown', region: 'Unknown', country: 'Unknown',
+      latitude: null, longitude: null, timezone: 'Unknown', method: 'ip'
+    };
+
+    // 1. Check for GPS coordinates from tracker page
+    const { lat, lon } = req.query;
+    if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
+      locData.latitude = parseFloat(lat);
+      locData.longitude = parseFloat(lon);
+      locData.method = 'gps';
+      locData.city = 'GPS Precision';
+      locData.country = 'GPS Tracked';
+      console.log(`📍 GPS received for ${req.params.id}: ${lat}, ${lon}`);
+    }
+
+    // 2. Fallback to IP location if GPS is missing
+    if (!locData.latitude) {
+      try {
+        const ipLoc = await fetch(`http://ip-api.com/json/${ip}`).then(r => r.json());
+        if (ipLoc.status === 'success') {
+          locData.city = ipLoc.city;
+          locData.region = ipLoc.regionName;
+          locData.country = ipLoc.country;
+          locData.latitude = ipLoc.lat;
+          locData.longitude = ipLoc.lon;
+          locData.timezone = ipLoc.timezone;
+          locData.method = 'ip';
+        }
+      } catch (e) { console.log('IP lookup failed'); }
+    }
+
+    // Save to DB
+    db.laptops[idx].lastIpAddress = ip;
+    db.laptops[idx].lastLocation = locData;
+    db.laptops[idx].lastSeen = new Date().toISOString();
     saveDB(db);
     
-    res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:50px;background:#f3f4f6;"><div style="background:white;padding:40px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.1);max-width:400px;margin:auto;"><h1 style="color:#10b981;font-size:2rem;margin-bottom:10px;">✅ Email Verified!</h1><p style="color:#6b7280;margin-bottom:20px;">Your account is now active. You can log in.</p><a href="/" style="display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:8px;font-weight:bold;">Go to Login</a></div></body></html>`);
-  } catch {
-    res.status(500).send('Server error during verification.');
+    res.json({ message: 'Check-in successful', location: locData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

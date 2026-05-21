@@ -115,11 +115,23 @@ async function sendConfirmationEmail(user) {
 }
 
 // AUTH ROUTES
-app.post('/api/auth/register', async (req, res) => {
-  const { name, email, password } = req.body;
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
   const db = loadDB();
-  if (db.users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already exists' });
+  const user = db.users.find(u => u.email === email);
+  if (!user) return res.status(400).json({ error: 'Invalid credentials' });
   
+  // ✅ SECURITY BLOCK: Check if email is verified
+  if (!user.verified && user.provider === 'local') {
+    return res.status(403).json({ error: 'Please verify your email first. Check your inbox.' });
+  }
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
+  
+  const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+  res.json({ token, user: { id: user.id, name: user.name, email, role: user.role } });
+});
   const hashed = await bcrypt.hash(password, 10);
   const trialEndDate = new Date(); trialEndDate.setDate(trialEndDate.getDate() + 21);
   

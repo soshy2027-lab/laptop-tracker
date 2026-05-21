@@ -37,67 +37,37 @@
       border-radius: 10px;
       background: #f0fdf4;
       border: 2px solid #16a34a;
+      transition: all 0.3s;
     }
-    .status.active {
-      background: #f0fdf4;
-      border-color: #16a34a;
-    }
-    .status.error {
-      background: #fef2f2;
-      border-color: #dc2626;
-    }
-    .status h3 {
-      color: #16a34a;
-      margin-bottom: 10px;
-    }
-    .status.error h3 {
-      color: #dc2626;
-    }
-    .info {
-      text-align: left;
-      margin: 20px 0;
-      padding: 15px;
-      background: #f8fafc;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-    .info p {
-      margin: 5px 0;
-      color: #475569;
-    }
+    .status.active { background: #f0fdf4; border-color: #16a34a; }
+    .status.waiting { background: #eff6ff; border-color: #2563eb; }
+    .status.error { background: #fef2f2; border-color: #dc2626; }
+    .status h3 { margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    
     .pulse {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      background: #16a34a;
-      border-radius: 50%;
-      margin-right: 8px;
+      display: inline-block; width: 12px; height: 12px;
+      background: #16a34a; border-radius: 50%;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(1.2); }
     }
+    .info {
+      text-align: left; margin: 20px 0; padding: 15px;
+      background: #f8fafc; border-radius: 8px; font-size: 0.9rem;
+    }
+    .info p { margin: 5px 0; color: #475569; }
     .btn {
-      background: #2563eb;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      margin: 5px;
-      text-decoration: none;
+      background: #2563eb; color: white; padding: 12px 24px;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-weight: bold; margin: 5px; text-decoration: none;
       display: inline-block;
     }
     .btn:hover { background: #1d4ed8; }
     input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
+      width: 100%; padding: 12px; margin: 10px 0;
+      border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;
     }
     .hidden { display: none; }
   </style>
@@ -106,7 +76,7 @@
   <div class="container">
     <img src="/logo.png" alt="Logo" class="logo">
     <h1>Laptop Tracker</h1>
-    <p style="color: #6b7280; margin-bottom: 20px;">Auto-Tracking System</p>
+    <p style="color: #6b7280; margin-bottom: 20px;">Auto-Tracking System (GPS Enabled)</p>
 
     <div id="setupSection">
       <p style="margin-bottom: 15px;">Enter your Laptop ID to start tracking:</p>
@@ -115,15 +85,15 @@
     </div>
 
     <div id="trackingSection" class="hidden">
-      <div class="status active" id="statusBox">
-        <h3><span class="pulse"></span>Tracking Active</h3>
-        <p>Auto-checking location every 5 minutes</p>
+      <div class="status waiting" id="statusBox">
+        <h3>⏳ Acquiring Signal...</h3>
+        <p>Locating laptop via GPS or IP...</p>
       </div>
 
       <div class="info">
         <p><strong>Last Check:</strong> <span id="lastCheck">Never</span></p>
         <p><strong>Location:</strong> <span id="location">Waiting...</span></p>
-        <p><strong>IP Address:</strong> <span id="ipAddress">Detecting...</span></p>
+        <p><strong>Method:</strong> <span id="method">--</span></p>
       </div>
 
       <button class="btn" onclick="checkNow()" style="background: #10b981;">Check Now</button>
@@ -160,34 +130,72 @@
     };
 
     window.checkNow = async () => {
+      const statusBox = document.getElementById('statusBox');
+      const locationEl = document.getElementById('location');
+      const methodEl = document.getElementById('method');
+      const lastCheckEl = document.getElementById('lastCheck');
+
+      statusBox.className = 'status waiting';
+      statusBox.innerHTML = '<h3>⏳ Acquiring Signal...</h3><p>Locating laptop...</p>';
+      locationEl.textContent = 'Waiting...';
+      methodEl.textContent = 'Scanning...';
+
+      let lat = null;
+      let lon = null;
+
+      // TRY GPS FIRST
+      if ('geolocation' in navigator) {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0
+            });
+          });
+          lat = position.coords.latitude;
+          lon = position.coords.longitude;
+        } catch (e) {
+          console.log('GPS failed:', e);
+          // Fallback to IP allowed
+        }
+      }
+
+      // CALL API
+      let url = `/api/laptops/${laptopId}/checkin`;
+      if (lat && lon) {
+        url += `?lat=${lat}&lon=${lon}`;
+      }
+
       try {
-        const response = await fetch(`/api/laptops/${laptopId}/checkin`);
+        const response = await fetch(url);
         const data = await response.json();
         
         if (response.ok) {
-          document.getElementById('lastCheck').textContent = new Date().toLocaleTimeString();
-          document.getElementById('location').textContent = data.location ? 
-            `${data.location.city}, ${data.location.country}` : 'Location unavailable';
-          document.getElementById('ipAddress').textContent = data.ip || 'Unknown';
-          
-          const statusBox = document.getElementById('statusBox');
           statusBox.className = 'status active';
-          statusBox.innerHTML = '<h3><span class="pulse"></span>Tracking Active</h3><p>Auto-checking location every 5 minutes</p>';
+          statusBox.innerHTML = '<h3><span class="pulse"></span>Tracking Active</h3><p>Location sent successfully.</p>';
+          
+          lastCheckEl.textContent = new Date().toLocaleTimeString();
+          methodEl.textContent = lat && lon ? '✅ GPS (Precise)' : ' IP Address (Approximate)';
+          
+          if (data.location) {
+            locationEl.textContent = `${data.location.city}, ${data.location.country}`;
+          } else if (lat && lon) {
+            locationEl.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+          } else {
+            locationEl.textContent = 'Unknown';
+          }
         } else {
           throw new Error(data.error || 'Check-in failed');
         }
       } catch (err) {
-        console.error('Tracking error:', err);
-        const statusBox = document.getElementById('statusBox');
         statusBox.className = 'status error';
-        statusBox.innerHTML = '<h3>⚠️ Tracking Error</h3><p>' + err.message + '</p>';
+        statusBox.innerHTML = `<h3>⚠️ Error</h3><p>${err.message}</p>`;
       }
     };
 
     window.stopTracking = () => {
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
+      if (checkInterval) clearInterval(checkInterval);
       localStorage.removeItem('trackerLaptopId');
       document.getElementById('setupSection').classList.remove('hidden');
       document.getElementById('trackingSection').classList.add('hidden');

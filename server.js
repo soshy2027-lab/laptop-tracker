@@ -38,6 +38,11 @@ const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL;
 const MPESA_BASE_URL = process.env.MPESA_BASE_URL;
 const pendingPayments = new Map();
 
+const PESAPAL_CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY;
+const PESAPAL_CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
+const PESAPAL_BASE_URL = process.env.PESAPAL_BASE_URL || 'https://cybqa.pesapal.com/pesapalv3';
+const pendingPesapalPayments = new Map();
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT) || 587,
@@ -173,56 +178,22 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, email, role: user.role } });
 });
 
-app.get('/api/laptops/:id/checkin', async (req, res) => {
+app.get('/api/auth/confirm', async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send('Missing verification token.');
+  
   try {
     const db = loadDB();
-    const idx = db.laptops.findIndex(l => l.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    const idx = db.users.findIndex(u => u.verificationToken === token);
+    if (idx === -1) return res.status(400).send('Invalid or expired link.');
     
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
-    
-    // Default location structure
-    let locData = {
-      city: 'Unknown', region: 'Unknown', country: 'Unknown',
-      latitude: null, longitude: null, timezone: 'Unknown', method: 'ip'
-    };
-
-    // 1. Check for GPS coordinates from tracker page
-    const { lat, lon } = req.query;
-    if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
-      locData.latitude = parseFloat(lat);
-      locData.longitude = parseFloat(lon);
-      locData.method = 'gps';
-      locData.city = 'GPS Precision';
-      locData.country = 'GPS Tracked';
-      console.log(`📍 GPS received for ${req.params.id}: ${lat}, ${lon}`);
-    }
-
-    // 2. Fallback to IP location if GPS is missing
-    if (!locData.latitude) {
-      try {
-        const ipLoc = await fetch(`http://ip-api.com/json/${ip}`).then(r => r.json());
-        if (ipLoc.status === 'success') {
-          locData.city = ipLoc.city;
-          locData.region = ipLoc.regionName;
-          locData.country = ipLoc.country;
-          locData.latitude = ipLoc.lat;
-          locData.longitude = ipLoc.lon;
-          locData.timezone = ipLoc.timezone;
-          locData.method = 'ip';
-        }
-      } catch (e) { console.log('IP lookup failed'); }
-    }
-
-    // Save to DB
-    db.laptops[idx].lastIpAddress = ip;
-    db.laptops[idx].lastLocation = locData;
-    db.laptops[idx].lastSeen = new Date().toISOString();
+    db.users[idx].verified = true;
+    db.users[idx].verificationToken = null;
     saveDB(db);
     
-    res.json({ message: 'Check-in successful', location: locData });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:50px;background:#f3f4f6;"><div style="background:white;padding:40px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.1);max-width:400px;margin:auto;"><h1 style="color:#10b981;font-size:2rem;margin-bottom:10px;">✅ Email Verified!</h1><p style="color:#6b7280;margin-bottom:20px;">Your account is now active. You can log in.</p><a href="/" style="display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:8px;font-weight:bold;">Go to Login</a></div></body></html>`);
+  } catch {
+    res.status(500).send('Server error during verification.');
   }
 });
 
@@ -233,6 +204,102 @@ const protect = (req, res, next) => {
   catch { res.status(401).json({ error: 'Invalid or expired token' }); }
 };
 
+// PESAPAL HELPERS
+async function getPesapalToken() {
+    const res = await axios.post(`${PESAPAL_BASE_URL}/api/auth/GenerateToken`, {
+        consumer_key: PESAPAL_CONSUMER_KEY,
+        consumer_secret: PESAPAL_CONSUMER_SECRET
+    });
+    return res.data.token;
+}
+
+app.post('/api/pesapal/initiate', protect, async (req, res) => {
+    try {
+        const token = await getPesapalToken();
+        const amount = 2500; 
+        const currency = "KES";
+        const description = `Subscription for User ${req.user.id}`;
+        const callback_url = `${APP_URL}/api/pesapal/callback`;
+        
+        const db = loadDB();
+        const user = db.users.find(u => u.id === req.user.id);
+        const nameParts = (user.name || "User Name").split(' ');
+
+        const payload = {
+            id: `ORD-${Date.now()}`,
+            currency: currency,
+            amount: amount,
+            description: description,
+            callback_url: callback_url,
+            notification_id: null, 
+            billing_address: {
+                email_address: user.email,
+                phone_number: "",
+                country_code: "KE",
+                first_name: nameParts[0] || "User",
+                last_name: nameParts[1] || "Name",
+                line_1: "", line_2: "", city: "", state: "", postal_code: "", zip_code: ""
+            }
+        };
+
+        const response = await axios.post(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            }
+        });
+
+        pendingPesapalPayments.set(response.data.order_tracking_id, {
+            userId: req.user.id,
+            amount: amount
+        });
+
+        res.json({ redirect_url: response.data.redirect_url });
+    } catch (err) {
+        console.error('Pesapal Error:', err.response?.data || err.message);
+        res.status(500).json({ error: 'Failed to initiate Pesapal payment' });
+    }
+});
+
+app.get('/api/pesapal/callback', async (req, res) => {
+    const { OrderTrackingId } = req.query;
+    if (!OrderTrackingId) return res.status(400).send('Missing OrderTrackingId');
+
+    try {
+        const token = await getPesapalToken();
+        const statusRes = await axios.get(`${PESAPAL_BASE_URL}/api/Transactions/GetTransactionStatus?orderTrackingId=${OrderTrackingId}`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+        });
+
+        const status = statusRes.data; 
+
+        if (status.payment_status_description === "COMPLETED" || status.payment_status_description === "VALIDATED") {
+            const pending = pendingPesapalPayments.get(OrderTrackingId);
+            if (pending) {
+                const db = loadDB();
+                const idx = db.users.findIndex(u => u.id === pending.userId);
+                if (idx !== -1) {
+                    const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 4);
+                    db.users[idx].isSubscribed = true;
+                    db.users[idx].subscriptionExpiryDate = expiry.toISOString();
+                    db.users[idx].paymentHistory = db.users[idx].paymentHistory || [];
+                    db.users[idx].paymentHistory.push({ amount: pending.amount, currency: 'KES', date: new Date().toISOString(), method: 'Pesapal' });
+                    saveDB(db);
+                    pendingPesapalPayments.delete(OrderTrackingId);
+                }
+            }
+            res.redirect(`${APP_URL}/dashboard?payment=success`);
+        } else {
+            res.redirect(`${APP_URL}/dashboard?payment=failed`);
+        }
+    } catch (err) {
+        console.error('Pesapal Callback Error:', err);
+        res.redirect(`${APP_URL}/dashboard?payment=error`);
+    }
+});
+
+// M-PESA HELPERS
 async function getMpesaAccessToken() {
   const auth = Buffer.from(`${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`).toString('base64');
   const res = await axios.get(`${MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, { headers: { Authorization: `Basic ${auth}` } });
@@ -340,21 +407,48 @@ app.put('/api/laptops/:id', protect, checkSub, (req, res) => {
 app.get('/api/laptops/:id/checkin', async (req, res) => {
   try {
     const db = loadDB();
-    const laptop = db.laptops.find(l => l.id === req.params.id);
-    if (!laptop) return res.status(404).json({ error: 'Not found' });
+    const idx = db.laptops.findIndex(l => l.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
-    try {
-      const loc = await fetch(`http://ip-api.com/json/${ip}`).then(r => r.json());
-      if (loc.status === 'success') {
-        const idx = db.laptops.findIndex(l => l.id === req.params.id);
-        db.laptops[idx].lastIpAddress = ip;
-        db.laptops[idx].lastLocation = { city: loc.city, region: loc.regionName, country: loc.country, latitude: loc.lat, longitude: loc.lon, timezone: loc.timezone };
-        db.laptops[idx].lastSeen = new Date().toISOString();
-        saveDB(db);
-      }
-    } catch {}
-    res.json({ message: 'Check-in successful' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    let locData = {
+      city: 'Unknown', region: 'Unknown', country: 'Unknown',
+      latitude: null, longitude: null, timezone: 'Unknown', method: 'ip'
+    };
+
+    const { lat, lon } = req.query;
+    if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
+      locData.latitude = parseFloat(lat);
+      locData.longitude = parseFloat(lon);
+      locData.method = 'gps';
+      locData.city = 'GPS Precision';
+      locData.country = 'GPS Tracked';
+    }
+
+    if (!locData.latitude) {
+      try {
+        const ipLoc = await fetch(`http://ip-api.com/json/${ip}`).then(r => r.json());
+        if (ipLoc.status === 'success') {
+          locData.city = ipLoc.city;
+          locData.region = ipLoc.regionName;
+          locData.country = ipLoc.country;
+          locData.latitude = ipLoc.lat;
+          locData.longitude = ipLoc.lon;
+          locData.timezone = ipLoc.timezone;
+          locData.method = 'ip';
+        }
+      } catch (e) { console.log('IP lookup failed'); }
+    }
+
+    db.laptops[idx].lastIpAddress = ip;
+    db.laptops[idx].lastLocation = locData;
+    db.laptops[idx].lastSeen = new Date().toISOString();
+    saveDB(db);
+    
+    res.json({ message: 'Check-in successful', location: locData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 app.put('/api/laptops/:id/stolen', protect, (req, res) => {
   const db = loadDB();

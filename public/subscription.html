@@ -3,319 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Subscription - Laptop Tracker</title>
+  <title>Laptop Tracker - Subscribe</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      padding: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     .container {
       background: white;
       border-radius: 20px;
       padding: 30px;
-      max-width: 500px;
+      max-width: 450px;
       width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    h1 {
       text-align: center;
-      color: #2563eb;
-      margin-bottom: 10px;
-      font-size: 1.8rem;
     }
-    .subtitle {
-      text-align: center;
-      color: #6b7280;
-      margin-bottom: 30px;
-    }
-    .status-card {
-      background: #f3f4f6;
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; object-fit: contain; }
+    h1 { color: #2563eb; margin-bottom: 10px; }
+    p { color: #6b7280; margin-bottom: 20px; }
+    
+    .plan-box {
+      background: #f8fafc;
+      border: 2px solid #e5e7eb;
       border-radius: 12px;
       padding: 20px;
-      text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
-    .status-badge {
-      display: inline-block;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
+    .price { font-size: 2.5rem; font-weight: bold; color: #111827; }
+    .period { color: #6b7280; font-size: 0.9rem; }
+    .features { text-align: left; margin: 15px 0; list-style: none; }
+    .features li { margin: 8px 0; color: #374151; font-size: 0.9rem; }
+    .features li::before { content: "✅ "; }
+    
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px;
     }
-    .status-badge.trial {
-      background: #dcfce7;
-      color: #15803d;
-    }
-    .status-badge.active {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-    .status-badge.expired {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-    .days-left {
-      color: #6b7280;
-      font-size: 0.95rem;
-    }
-    .payment-section {
-      margin-top: 25px;
-    }
-    .payment-method {
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .payment-method:hover, .payment-method.selected {
-      border-color: #2563eb;
-      background: #eff6ff;
-    }
-    .payment-method h3 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 5px;
-      color: #1f2937;
-    }
-    .payment-method p {
-      color: #6b7280;
-      font-size: 0.85rem;
-      margin-left: 30px;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      color: #374151;
-      font-weight: 500;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    .form-group input:focus {
-      outline: none;
-      border-color: #2563eb;
-    }
-    .pay-btn {
-      width: 100%;
-      padding: 15px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .pay-btn:hover {
-      background: #1d4ed8;
-    }
-    .pay-btn:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-    }
-    .back-btn {
-      width: 100%;
-      padding: 12px;
-      background: #f3f4f6;
-      color: #374151;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-    .back-btn:hover {
-      background: #e5e7eb;
-    }
-    .hidden { display: none; }
-    .alert {
-      padding: 12px 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      font-size: 0.9rem;
-    }
-    .alert-success {
-      background: #dcfce7;
-      color: #15803d;
-    }
-    .alert-error {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
+    .btn-mpesa { background: #4ade80; color: #064e3b; }
+    .btn-card { background: #2563eb; color: white; }
+    .btn-back { background: #e5e7eb; color: #374151; }
+    
+    .loading { display: none; margin-top: 10px; color: #2563eb; }
+    .error { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 8px; margin-top: 10px; display: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>💎 Subscription</h1>
-    <p class="subtitle">Manage your plan & billing</p>
+    <img src="/logo.png" alt="Logo" class="logo">
+    <h1>Upgrade to Pro</h1>
+    <p>Get full access to Laptop Tracker features.</p>
 
-    <div id="alertContainer"></div>
-
-    <!-- Status Card -->
-    <div class="status-card">
-      <div id="statusBadge" class="status-badge">Loading...</div>
-      <p id="statusText" class="days-left">Checking your subscription...</p>
+    <div class="plan-box">
+      <div class="price">KES 2,500</div>
+      <div class="period">Every 4 Months</div>
+      <ul class="features">
+        <li>Unlimited Laptop Tracking</li>
+        <li>Real-time GPS & IP Location</li>
+        <li>Stolen Device Alerts</li>
+        <li>Priority Support</li>
+      </ul>
     </div>
 
-    <!-- Payment Section (Only show if expired or trial) -->
-    <div id="paymentSection" class="payment-section hidden">
-      <h2 style="margin-bottom: 15px; color: #1f2937;">Choose Payment Method</h2>
-      
-      <!-- M-Pesa Option -->
-      <div class="payment-method" onclick="selectMethod('mpesa')">
-        <h3>📱 M-Pesa</h3>
-        <p>Pay with M-Pesa (2,500 KSH for 4 months)</p>
-      </div>
+    <div id="loading" class="loading">Processing payment... Please wait.</div>
+    <div id="error" class="error"></div>
 
-      <!-- PayPal Option -->
-      <div class="payment-method" onclick="selectMethod('paypal')">
-        <h3> PayPal</h3>
-        <p>Pay with PayPal or Card (25 USD for 4 months)</p>
-      </div>
-
-      <!-- Payment Form -->
-      <div id="paymentForm" class="hidden" style="margin-top: 20px;">
-        <div id="mpesaForm" class="hidden">
-          <div class="form-group">
-            <label for="phone">📱 M-Pesa Phone Number</label>
-            <input type="tel" id="phone" placeholder="0712345678" required>
-          </div>
-          <button id="payBtn" class="pay-btn" onclick="payWithMpesa()">
-            💳 Pay 2,500 KSH
-          </button>
-        </div>
-
-        <div id="paypalForm" class="hidden">
-          <div class="alert alert-success">
-            ℹ️ PayPal integration coming soon! For now, use M-Pesa or contact admin.
-          </div>
-          <button class="pay-btn" onclick="alert('PayPal integration coming soon! Please use M-Pesa for now.')">
-            Coming Soon
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <button class="back-btn" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+    <button class="btn btn-mpesa" onclick="payMpesa()">📱 Pay with M-Pesa</button>
+    <button class="btn btn-card" onclick="payCard()">💳 Pay with Visa/Mastercard (Pesapal)</button>
+    <button class="btn btn-back" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
   </div>
 
   <script>
     const token = localStorage.getItem('token');
     const auth = { 'Authorization': `Bearer ${token}` };
-    let selectedMethod = '';
+    
+    if (!token) window.location.href = '/';
 
-    // Load subscription status
-    async function loadStatus() {
-      try {
-        const res = await fetch('/api/subscription/status', { headers: auth });
-        const data = await res.json();
-        
-        const badge = document.getElementById('statusBadge');
-        const text = document.getElementById('statusText');
-        const paymentSection = document.getElementById('paymentSection');
-
-        if (data.status === 'trial') {
-          badge.className = 'status-badge trial';
-          badge.textContent = '🟢 Free Trial';
-          text.textContent = `${data.daysLeft} days remaining`;
-          paymentSection.classList.remove('hidden');
-        } else if (data.status === 'active') {
-          badge.className = 'status-badge active';
-          badge.textContent = '✅ Active';
-          text.textContent = `Expires: ${new Date(data.expires).toLocaleDateString()}`;
-          paymentSection.classList.add('hidden');
-        } else {
-          badge.className = 'status-badge expired';
-          badge.textContent = '❌ Expired';
-          text.textContent = 'Please renew your subscription';
-          paymentSection.classList.remove('hidden');
-        }
-      } catch (err) {
-        showAlert('Failed to load subscription status', 'error');
-      }
+    function showError(msg) {
+      const err = document.getElementById('error');
+      err.textContent = msg; err.style.display = 'block';
     }
 
-    window.selectMethod = (method) => {
-      selectedMethod = method;
-      document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
-      event.currentTarget.classList.add('selected');
+    window.payMpesa = async () => {
+      const phone = prompt("Enter M-Pesa Number (e.g., 0712345678):");
+      if (!phone) return;
       
-      document.getElementById('paymentForm').classList.remove('hidden');
-      document.getElementById('mpesaForm').classList.add('hidden');
-      document.getElementById('paypalForm').classList.add('hidden');
-      
-      if (method === 'mpesa') {
-        document.getElementById('mpesaForm').classList.remove('hidden');
-      } else if (method === 'paypal') {
-        document.getElementById('paypalForm').classList.remove('hidden');
-      }
-    };
-
-    window.payWithMpesa = async () => {
-      const phone = document.getElementById('phone').value;
-      if (!phone) {
-        showAlert('Please enter your phone number', 'error');
-        return;
-      }
-
-      const btn = document.getElementById('payBtn');
-      btn.disabled = true;
-      btn.textContent = '⏳ Sending STK Push...';
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').style.display = 'none';
 
       try {
         const res = await fetch('/api/mpesa/pay', {
-          method: 'POST',
-          headers: { ...auth, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, amount: 2500 })
+          method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
         });
-
         const data = await res.json();
-
         if (res.ok) {
-          showAlert('✅ STK Push sent! Check your phone and enter PIN to complete payment.', 'success');
-          btn.textContent = '✔️ Payment Sent';
+          alert('Check your phone for the STK Push!');
         } else {
-          showAlert('❌ ' + data.error, 'error');
-          btn.disabled = false;
-          btn.textContent = '💳 Pay 2,500 KSH';
+          showError(data.error || 'Payment failed');
         }
-      } catch (err) {
-        showAlert('❌ Network error. Please try again.', 'error');
-        btn.disabled = false;
-        btn.textContent = '💳 Pay 2,500 KSH';
-      }
+      } catch (e) { showError('Network error'); }
+      document.getElementById('loading').style.display = 'none';
     };
 
-    function showAlert(message, type) {
-      const container = document.getElementById('alertContainer');
-      const alert = document.createElement('div');
-      alert.className = `alert alert-${type}`;
-      alert.textContent = message;
-      container.innerHTML = '';
-      container.appendChild(alert);
-      setTimeout(() => alert.remove(), 5000);
-    }
+    window.payCard = async () => {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').style.display = 'none';
 
-    // Load on page load
-    loadStatus();
+      try {
+        const res = await fetch('/api/pesapal/initiate', {
+          method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok && data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          showError(data.error || 'Payment failed');
+        }
+      } catch (e) { showError('Network error'); }
+      document.getElementById('loading').style.display = 'none';
+    };
   </script>
 </body>
 </html>

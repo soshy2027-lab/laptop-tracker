@@ -43,7 +43,6 @@ const PESAPAL_CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
 const PESAPAL_BASE_URL = process.env.PESAPAL_BASE_URL || 'https://cybqa.pesapal.com/pesapalv3';
 const pendingPesapalPayments = new Map();
 
-// LOG KEYS ON STARTUP (REMOVE LATER IN PROD)
 console.log('🔑 Pesapal Key:', PESAPAL_CONSUMER_KEY ? 'LOADED' : 'MISSING');
 
 const transporter = nodemailer.createTransport({
@@ -57,11 +56,8 @@ const transporter = nodemailer.createTransport({
 });
 
 transporter.verify(function(error, success) {
-  if (error) {
-    console.log('📧 Email connection failed:', error);
-  } else {
-    console.log('📧 Email server is ready to send messages!');
-  }
+  if (error) console.log(' Email connection failed:', error);
+  else console.log('📧 Email server is ready to send messages!');
 });
 
 const DB_FILE = './data.json';
@@ -104,10 +100,7 @@ async function sendConfirmationEmail(user) {
     const token = crypto.randomBytes(32).toString('hex');
     const db = loadDB();
     const idx = db.users.findIndex(u => u.id === user.id);
-    if (idx !== -1) {
-      db.users[idx].verificationToken = token;
-      saveDB(db);
-    }
+    if (idx !== -1) { db.users[idx].verificationToken = token; saveDB(db); }
     const link = `${APP_URL}/api/auth/confirm?token=${token}`;
     await transporter.sendMail({
       from: `"Laptop Tracker" <${process.env.SMTP_USER}>`,
@@ -116,28 +109,18 @@ async function sendConfirmationEmail(user) {
       html: `<div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;background:#f9fafb;border-radius:10px;"><h2 style="color:#2563eb;">Welcome to Laptop Tracker! 🚀</h2><p>Hi ${user.name},</p><p>Thanks for signing up. Please click the button below to verify your email address:</p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Verify Email</a><p style="margin-top:20px;font-size:0.9rem;color:#6b7280;">If you didn't create an account, you can ignore this email.</p></div>`
     });
     console.log(`✅ Confirmation email sent to ${user.email}`);
-  } catch (err) {
-    console.error(' Failed to send email:', err.message);
-  }
+  } catch (err) { console.error(' Failed to send email:', err.message); }
 }
 
 app.post('/api/auth/register', async (req, res) => {
   const { name, email, password } = req.body;
   const db = loadDB();
   if (db.users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already exists' });
-  
   const hashed = await bcrypt.hash(password, 10);
   const trialEndDate = new Date(); trialEndDate.setDate(trialEndDate.getDate() + 21);
-  
-  const user = {
-    id: Date.now().toString(), name, email, password: hashed, role: 'user', phone: '',
-    verified: false, verificationToken: null,
-    trialEndDate: trialEndDate.toISOString(), isSubscribed: false, subscriptionExpiryDate: null, provider: 'local'
-  };
+  const user = { id: Date.now().toString(), name, email, password: hashed, role: 'user', phone: '', verified: false, verificationToken: null, trialEndDate: trialEndDate.toISOString(), isSubscribed: false, subscriptionExpiryDate: null, provider: 'local' };
   db.users.push(user); saveDB(db);
-  
   await sendConfirmationEmail(user);
-  
   const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
   res.status(201).json({ token, user: { id: user.id, name, email, role: user.role } });
 });
@@ -152,11 +135,7 @@ app.post('/api/auth/google', async (req, res) => {
     let user = db.users.find(u => u.email === payload.email);
     if (!user) {
       const trialEndDate = new Date(); trialEndDate.setDate(trialEndDate.getDate() + 21);
-      user = {
-        id: Date.now().toString(), name: payload.name, email: payload.email,
-        password: 'GOOGLE_USER', role: 'user', phone: '', verified: true,
-        trialEndDate: trialEndDate.toISOString(), isSubscribed: false, subscriptionExpiryDate: null, provider: 'google'
-      };
+      user = { id: Date.now().toString(), name: payload.name, email: payload.email, password: 'GOOGLE_USER', role: 'user', phone: '', verified: true, trialEndDate: trialEndDate.toISOString(), isSubscribed: false, subscriptionExpiryDate: null, provider: 'google' };
       db.users.push(user); saveDB(db);
     }
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -169,14 +148,9 @@ app.post('/api/auth/login', async (req, res) => {
   const db = loadDB();
   const user = db.users.find(u => u.email === email);
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-  
-  if (!user.verified && user.provider === 'local') {
-    return res.status(403).json({ error: 'Please verify your email first. Check your inbox.' });
-  }
-
+  if (!user.verified && user.provider === 'local') return res.status(403).json({ error: 'Please verify your email first. Check your inbox.' });
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
-  
   const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, user: { id: user.id, name: user.name, email, role: user.role } });
 });
@@ -184,20 +158,13 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/confirm', async (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).send('Missing verification token.');
-  
   try {
     const db = loadDB();
     const idx = db.users.findIndex(u => u.verificationToken === token);
     if (idx === -1) return res.status(400).send('Invalid or expired link.');
-    
-    db.users[idx].verified = true;
-    db.users[idx].verificationToken = null;
-    saveDB(db);
-    
+    db.users[idx].verified = true; db.users[idx].verificationToken = null; saveDB(db);
     res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:50px;background:#f3f4f6;"><div style="background:white;padding:40px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.1);max-width:400px;margin:auto;"><h1 style="color:#10b981;font-size:2rem;margin-bottom:10px;">✅ Email Verified!</h1><p style="color:#6b7280;margin-bottom:20px;">Your account is now active. You can log in.</p><a href="/" style="display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:8px;font-weight:bold;">Go to Login</a></div></body></html>`);
-  } catch {
-    res.status(500).send('Server error during verification.');
-  }
+  } catch { res.status(500).send('Server error during verification.'); }
 });
 
 const protect = (req, res, next) => {
@@ -207,19 +174,20 @@ const protect = (req, res, next) => {
   catch { res.status(401).json({ error: 'Invalid or expired token' }); }
 };
 
-// ==================== PESAPAL INTEGRATION ====================
-
+// ==================== PESAPAL INTEGRATION (FIXED) ====================
 async function getPesapalToken() {
-  console.log("Requesting Pesapal Token...");
+  console.log("Requesting Pesapal Token from:", `${PESAPAL_BASE_URL}/api/Auth/GenerateToken`);
   try {
-    const res = await axios.post(`${PESAPAL_BASE_URL}/api/auth/GenerateToken`, {
+    const res = await axios.post(`${PESAPAL_BASE_URL}/api/Auth/GenerateToken`, {
       consumer_key: PESAPAL_CONSUMER_KEY,
       consumer_secret: PESAPAL_CONSUMER_SECRET
+    }, {
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     });
     console.log("Pesapal Token Received ✅");
     return res.data.token;
   } catch (err) {
-    console.error("Pesapal Token Error:", err.response ? err.response.data : err.message);
+    console.error("Pesapal Token Error:", JSON.stringify(err.response?.data || err.message));
     throw new Error("Failed to get Pesapal Token");
   }
 }
@@ -228,53 +196,30 @@ app.post('/api/pesapal/initiate', protect, async (req, res) => {
   try {
     console.log("Starting Pesapal Payment Initiation...");
     const token = await getPesapalToken();
-    
     const amount = 2500; 
     const currency = "KES";
     const description = "Laptop Tracker Pro Subscription";
     const callback_url = `${APP_URL}/api/pesapal/callback`;
-    
     const db = loadDB();
     const user = db.users.find(u => u.id === req.user.id);
     const nameParts = (user.name || "User Name").split(' ');
-
-    // Pesapal requires a unique order ID
     const orderId = `ORD-${Date.now()}`;
 
     const payload = {
-      id: orderId,
-      currency: currency,
-      amount: amount,
-      description: description,
-      callback_url: callback_url,
-      notification_id: null, 
+      id: orderId, currency, amount, description, callback_url, notification_id: null, 
       billing_address: {
-        email_address: user.email,
-        phone_number: user.phone || "",
-        country_code: "KE",
-        first_name: nameParts[0] || "User",
-        last_name: nameParts[1] || "Name",
+        email_address: user.email, phone_number: user.phone || "", country_code: "KE",
+        first_name: nameParts[0] || "User", last_name: nameParts[1] || "Name",
         line_1: "", line_2: "", city: "", state: "", postal_code: "", zip_code: ""
       }
     };
 
-    console.log("Sending Payload to Pesapal:", JSON.stringify(payload));
-
     const response = await axios.post(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      }
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' }
     });
 
-    console.log("Pesapal Response:", response.data);
-
     if (response.data.redirect_url) {
-      pendingPesapalPayments.set(orderId, {
-        userId: req.user.id,
-        amount: amount
-      });
+      pendingPesapalPayments.set(orderId, { userId: req.user.id, amount });
       res.json({ redirect_url: response.data.redirect_url });
     } else {
       throw new Error("No redirect URL received from Pesapal");
@@ -288,55 +233,33 @@ app.post('/api/pesapal/initiate', protect, async (req, res) => {
 app.get('/api/pesapal/callback', async (req, res) => {
   const { OrderTrackingId } = req.query;
   if (!OrderTrackingId) return res.status(400).send('Missing OrderTrackingId');
-
   try {
     console.log("Pesapal Callback Received for:", OrderTrackingId);
     const token = await getPesapalToken();
-    
     const statusRes = await axios.get(`${PESAPAL_BASE_URL}/api/Transactions/GetTransactionStatus?orderTrackingId=${OrderTrackingId}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
     });
-
     const status = statusRes.data;
-    console.log("Transaction Status:", status);
-
     if (status.payment_status_description === "COMPLETED" || status.payment_status_description === "VALIDATED") {
-      // We need to find the pending payment. 
-      // Since we might not have the OrderID in memory if server restarted, we usually check DB. 
-      // But for this simple flow, we assume it works if status is COMPLETED.
-      
-      // We iterate pending map to find the userId
       let userId = null;
-      for (const [key, val] of pendingPesapalPayments.entries()) {
-          if (key === OrderTrackingId) userId = val.userId; 
-      }
-      
-      // If not in map, we can't auto-activate without more complex tracking, but let's assume it's there
+      for (const [key, val] of pendingPesapalPayments.entries()) { if (key === OrderTrackingId) userId = val.userId; }
       if (userId) {
-          const db = loadDB();
-          const idx = db.users.findIndex(u => u.id === userId);
-          if (idx !== -1) {
-              const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 4);
-              db.users[idx].isSubscribed = true;
-              db.users[idx].subscriptionExpiryDate = expiry.toISOString();
-              db.users[idx].paymentHistory = db.users[idx].paymentHistory || [];
-              db.users[idx].paymentHistory.push({ amount: 2500, currency: 'KES', date: new Date().toISOString(), method: 'Pesapal' });
-              saveDB(db);
-              pendingPesapalPayments.delete(OrderTrackingId);
-          }
+        const db = loadDB();
+        const idx = db.users.findIndex(u => u.id === userId);
+        if (idx !== -1) {
+          const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 4);
+          db.users[idx].isSubscribed = true; db.users[idx].subscriptionExpiryDate = expiry.toISOString();
+          db.users[idx].paymentHistory = db.users[idx].paymentHistory || [];
+          db.users[idx].paymentHistory.push({ amount: 2500, currency: 'KES', date: new Date().toISOString(), method: 'Pesapal' });
+          saveDB(db); pendingPesapalPayments.delete(OrderTrackingId);
+        }
       }
       res.redirect(`${APP_URL}/dashboard?payment=success`);
-    } else {
-      res.redirect(`${APP_URL}/dashboard?payment=failed`);
-    }
-  } catch (err) {
-    console.error('Pesapal Callback Error:', err);
-    res.redirect(`${APP_URL}/dashboard?payment=error`);
-  }
+    } else { res.redirect(`${APP_URL}/dashboard?payment=failed`); }
+  } catch (err) { console.error('Pesapal Callback Error:', err); res.redirect(`${APP_URL}/dashboard?payment=error`); }
 });
 
 // ==================== M-PESA INTEGRATION ====================
-
 async function getMpesaAccessToken() {
   const auth = Buffer.from(`${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`).toString('base64');
   const res = await axios.get(`${MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, { headers: { Authorization: `Basic ${auth}` } });
@@ -380,12 +303,10 @@ app.post('/api/mpesa/callback', async (req, res) => {
         const idx = db.users.findIndex(u => u.id === pending.userId);
         if (idx !== -1) {
           const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 4);
-          db.users[idx].isSubscribed = true;
-          db.users[idx].subscriptionExpiryDate = expiry.toISOString();
+          db.users[idx].isSubscribed = true; db.users[idx].subscriptionExpiryDate = expiry.toISOString();
           db.users[idx].paymentHistory = db.users[idx].paymentHistory || [];
           db.users[idx].paymentHistory.push({ amount: pending.amount, currency: 'KSH', date: new Date().toISOString(), method: 'M-Pesa' });
-          saveDB(db);
-          pendingPayments.delete(phone);
+          saveDB(db); pendingPayments.delete(phone);
         }
       }
     }
@@ -393,28 +314,23 @@ app.post('/api/mpesa/callback', async (req, res) => {
 });
 
 app.get('/api/subscription/status', protect, (req, res) => {
-  const db = loadDB();
-  const user = db.users.find(u => u.id === req.user.id);
+  const db = loadDB(); const user = db.users.find(u => u.id === req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json(getSubscriptionStatus(user));
 });
 
 app.post('/api/subscription/activate', protect, (req, res) => {
-  const db = loadDB();
-  const idx = db.users.findIndex(u => u.id === req.user.id);
+  const db = loadDB(); const idx = db.users.findIndex(u => u.id === req.user.id);
   if (idx === -1) return res.status(404).json({ error: 'User not found' });
   const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 4);
-  db.users[idx].isSubscribed = true;
-  db.users[idx].subscriptionExpiryDate = expiry.toISOString();
+  db.users[idx].isSubscribed = true; db.users[idx].subscriptionExpiryDate = expiry.toISOString();
   db.users[idx].paymentHistory = db.users[idx].paymentHistory || [];
   db.users[idx].paymentHistory.push({ amount: 2500, currency: 'KSH', date: new Date().toISOString(), method: req.body.method || 'test' });
-  saveDB(db);
-  res.json({ message: 'Subscription activated', expires: expiry.toISOString() });
+  saveDB(db); res.json({ message: 'Subscription activated', expires: expiry.toISOString() });
 });
 
 const checkSub = (req, res, next) => {
-  const db = loadDB();
-  const user = db.users.find(u => u.id === req.user.id);
+  const db = loadDB(); const user = db.users.find(u => u.id === req.user.id);
   if (user && user.role === 'admin') return next();
   if (getSubscriptionStatus(user).status === 'expired') return res.status(403).json({ error: 'Subscription expired.' });
   next();
@@ -423,82 +339,49 @@ const checkSub = (req, res, next) => {
 app.post('/api/laptops', protect, checkSub, (req, res) => {
   const db = loadDB();
   const laptop = { id: Date.now().toString(), user: req.user.id, ...req.body, status: req.body.status || 'Active', stolen: false, lastIpAddress: null, lastLocation: null, lastSeen: null };
-  db.laptops.push(laptop); saveDB(db);
-  res.status(201).json(laptop);
+  db.laptops.push(laptop); saveDB(db); res.status(201).json(laptop);
 });
-app.get('/api/laptops', protect, (req, res) => {
-  const db = loadDB(); res.json(db.laptops.filter(l => l.user === req.user.id));
-});
+app.get('/api/laptops', protect, (req, res) => { const db = loadDB(); res.json(db.laptops.filter(l => l.user === req.user.id)); });
 app.delete('/api/laptops/:id', protect, (req, res) => {
-  const db = loadDB();
-  db.laptops = db.laptops.filter(l => !(l.id === req.params.id && l.user === req.user.id));
-  saveDB(db); res.json({ message: 'Deleted' });
+  const db = loadDB(); db.laptops = db.laptops.filter(l => !(l.id === req.params.id && l.user === req.user.id)); saveDB(db); res.json({ message: 'Deleted' });
 });
 app.put('/api/laptops/:id', protect, checkSub, (req, res) => {
-  const db = loadDB();
-  const idx = db.laptops.findIndex(l => l.id === req.params.id && l.user === req.user.id);
+  const db = loadDB(); const idx = db.laptops.findIndex(l => l.id === req.params.id && l.user === req.user.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  db.laptops[idx] = { ...db.laptops[idx], ...req.body };
-  saveDB(db); res.json(db.laptops[idx]);
+  db.laptops[idx] = { ...db.laptops[idx], ...req.body }; saveDB(db); res.json(db.laptops[idx]);
 });
 app.get('/api/laptops/:id/checkin', async (req, res) => {
   try {
-    const db = loadDB();
-    const idx = db.laptops.findIndex(l => l.id === req.params.id);
+    const db = loadDB(); const idx = db.laptops.findIndex(l => l.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Not found' });
-    
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
-    let locData = {
-      city: 'Unknown', region: 'Unknown', country: 'Unknown',
-      latitude: null, longitude: null, timezone: 'Unknown', method: 'ip'
-    };
-
+    let locData = { city: 'Unknown', region: 'Unknown', country: 'Unknown', latitude: null, longitude: null, timezone: 'Unknown', method: 'ip' };
     const { lat, lon } = req.query;
     if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
-      locData.latitude = parseFloat(lat);
-      locData.longitude = parseFloat(lon);
-      locData.method = 'gps';
-      locData.city = 'GPS Precision';
-      locData.country = 'GPS Tracked';
+      locData.latitude = parseFloat(lat); locData.longitude = parseFloat(lon); locData.method = 'gps';
+      locData.city = 'GPS Precision'; locData.country = 'GPS Tracked';
     }
-
     if (!locData.latitude) {
       try {
         const ipLoc = await fetch(`http://ip-api.com/json/${ip}`).then(r => r.json());
         if (ipLoc.status === 'success') {
-          locData.city = ipLoc.city;
-          locData.region = ipLoc.regionName;
-          locData.country = ipLoc.country;
-          locData.latitude = ipLoc.lat;
-          locData.longitude = ipLoc.lon;
-          locData.timezone = ipLoc.timezone;
-          locData.method = 'ip';
+          locData.city = ipLoc.city; locData.region = ipLoc.regionName; locData.country = ipLoc.country;
+          locData.latitude = ipLoc.lat; locData.longitude = ipLoc.lon; locData.timezone = ipLoc.timezone; locData.method = 'ip';
         }
       } catch (e) { console.log('IP lookup failed'); }
     }
-
-    db.laptops[idx].lastIpAddress = ip;
-    db.laptops[idx].lastLocation = locData;
-    db.laptops[idx].lastSeen = new Date().toISOString();
-    saveDB(db);
-    
+    db.laptops[idx].lastIpAddress = ip; db.laptops[idx].lastLocation = locData; db.laptops[idx].lastSeen = new Date().toISOString(); saveDB(db);
     res.json({ message: 'Check-in successful', location: locData });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/laptops/:id/stolen', protect, (req, res) => {
-  const db = loadDB();
-  const idx = db.laptops.findIndex(l => l.id === req.params.id);
+  const db = loadDB(); const idx = db.laptops.findIndex(l => l.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   if (db.laptops[idx].user !== req.user.id && !isAdmin(req.user)) return res.status(403).json({ error: 'Not authorized' });
-  db.laptops[idx].stolen = req.body.stolen || true;
-  db.laptops[idx].status = req.body.stolen ? 'Stolen' : 'Active';
-  saveDB(db); res.json(db.laptops[idx]);
+  db.laptops[idx].stolen = req.body.stolen || true; db.laptops[idx].status = req.body.stolen ? 'Stolen' : 'Active'; saveDB(db); res.json(db.laptops[idx]);
 });
 app.get('/api/laptops/:id/location', protect, (req, res) => {
-  const db = loadDB();
-  const laptop = db.laptops.find(l => l.id === req.params.id);
+  const db = loadDB(); const laptop = db.laptops.find(l => l.id === req.params.id);
   if (!laptop) return res.status(404).json({ error: 'Not found' });
   if (laptop.user !== req.user.id && !isAdmin(req.user)) return res.status(403).json({ error: 'Not authorized' });
   res.json({ lastLocation: laptop.lastLocation, lastSeen: laptop.lastSeen, lastIpAddress: laptop.lastIpAddress, stolen: laptop.stolen });
@@ -506,24 +389,19 @@ app.get('/api/laptops/:id/location', protect, (req, res) => {
 
 app.get('/api/admin/users', protect, (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin access required' });
-  const db = loadDB();
-  res.json(db.users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, verified: u.verified, subscription: getSubscriptionStatus(u) })));
+  const db = loadDB(); res.json(db.users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, verified: u.verified, subscription: getSubscriptionStatus(u) })));
 });
 app.get('/api/admin/laptops', protect, (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin access required' });
-  const db = loadDB();
-  res.json(db.laptops.map(l => ({ ...l, ownerName: db.users.find(u => u.id === l.user)?.name || 'Unknown' })));
+  const db = loadDB(); res.json(db.laptops.map(l => ({ ...l, ownerName: db.users.find(u => u.id === l.user)?.name || 'Unknown' })));
 });
 app.delete('/api/admin/laptops/:id', protect, (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin access required' });
-  const db = loadDB();
-  db.laptops = db.laptops.filter(l => l.id !== req.params.id);
-  saveDB(db); res.json({ message: 'Deleted' });
+  const db = loadDB(); db.laptops = db.laptops.filter(l => l.id !== req.params.id); saveDB(db); res.json({ message: 'Deleted' });
 });
 app.get('/api/admin/stolen', protect, (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin access required' });
-  const db = loadDB();
-  res.json(db.laptops.filter(l => l.stolen).map(l => ({ ...l, ownerName: db.users.find(u => u.id === l.user)?.name || 'Unknown' })));
+  const db = loadDB(); res.json(db.laptops.filter(l => l.stolen).map(l => ({ ...l, ownerName: db.users.find(u => u.id === l.user)?.name || 'Unknown' })));
 });
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));

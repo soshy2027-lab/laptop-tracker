@@ -27,7 +27,6 @@
     .logo { width: 80px; height: 80px; margin: 0 auto 15px; object-fit: contain; }
     h1 { color: #2563eb; margin-bottom: 10px; }
     p { color: #6b7280; margin-bottom: 20px; }
-    
     .plan-box {
       background: #f8fafc;
       border: 2px solid #e5e7eb;
@@ -40,7 +39,6 @@
     .features { text-align: left; margin: 15px 0; list-style: none; }
     .features li { margin: 8px 0; color: #374151; font-size: 0.9rem; }
     .features li::before { content: "✅ "; }
-    
     .btn {
       width: 100%; padding: 14px; border: none; border-radius: 10px;
       font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px;
@@ -48,7 +46,6 @@
     .btn-mpesa { background: #4ade80; color: #064e3b; }
     .btn-card { background: #2563eb; color: white; }
     .btn-back { background: #e5e7eb; color: #374151; }
-    
     .loading { display: none; margin-top: 10px; color: #2563eb; }
     .error { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 8px; margin-top: 10px; display: none; }
   </style>
@@ -58,7 +55,6 @@
     <img src="/logo.png" alt="Logo" class="logo">
     <h1>Upgrade to Pro</h1>
     <p>Get full access to Laptop Tracker features.</p>
-
     <div class="plan-box">
       <div class="price">KES 2,500</div>
       <div class="period">Every 4 Months</div>
@@ -69,62 +65,46 @@
         <li>Priority Support</li>
       </ul>
     </div>
-
     <div id="loading" class="loading">Processing payment... Please wait.</div>
     <div id="error" class="error"></div>
-
     <button class="btn btn-mpesa" onclick="payMpesa()">📱 Pay with M-Pesa</button>
     <button class="btn btn-card" onclick="payCard()">💳 Pay with Visa/Mastercard (Pesapal)</button>
     <button class="btn btn-back" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
   </div>
-
   <script>
     const token = localStorage.getItem('token');
     const auth = { 'Authorization': `Bearer ${token}` };
-    
     if (!token) window.location.href = '/';
-
     function showError(msg) {
       const err = document.getElementById('error');
       err.textContent = msg; err.style.display = 'block';
     }
-
     window.payMpesa = async () => {
       const phone = prompt("Enter M-Pesa Number (e.g., 0712345678):");
       if (!phone) return;
-      
       document.getElementById('loading').style.display = 'block';
       document.getElementById('error').style.display = 'none';
-
       try {
         const res = await fetch('/api/mpesa/pay', {
           method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone })
         });
         const data = await res.json();
-        if (res.ok) {
-          alert('Check your phone for the STK Push!');
-        } else {
-          showError(data.error || 'Payment failed');
-        }
+        if (res.ok) alert('Check your phone for the STK Push!');
+        else showError(data.error || 'Payment failed');
       } catch (e) { showError('Network error'); }
       document.getElementById('loading').style.display = 'none';
     };
-
     window.payCard = async () => {
       document.getElementById('loading').style.display = 'block';
       document.getElementById('error').style.display = 'none';
-
       try {
         const res = await fetch('/api/pesapal/initiate', {
           method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }
         });
         const data = await res.json();
-        if (res.ok && data.redirect_url) {
-          window.location.href = data.redirect_url;
-        } else {
-          showError(data.error || 'Payment failed');
-        }
+        if (res.ok && data.redirect_url) window.location.href = data.redirect_url;
+        else showError(data.error || 'Payment failed');
       } catch (e) { showError('Network error'); }
       document.getElementById('loading').style.display = 'none';
     };

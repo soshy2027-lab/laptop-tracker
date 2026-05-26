@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laptop Tracker - Subscribe</title>
+  <!-- PayPal SDK (Fixed to USD for stability) -->
   <script src="https://www.paypal.com/sdk/js?client-id=AZYD9C9wMZzqA2F4kGCQC3b8MWQovDy7JcMKUnXJW8Y7SKu9MlVNj6elWrau8UmnWso3Ncmo4yMFubvu&currency=USD"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,7 +37,7 @@
       padding: 20px;
       margin-bottom: 20px;
     }
-    .price { font-size: 2.5rem; font-weight: bold; color: #111827; }
+    .price { font-size: 2.5rem; font-weight: bold; color: #111827; transition: opacity 0.3s; }
     .period { color: #6b7280; font-size: 0.9rem; }
     .features { text-align: left; margin: 15px 0; list-style: none; }
     .features li { margin: 8px 0; color: #374151; font-size: 0.9rem; }
@@ -45,14 +46,18 @@
     .btn {
       width: 100%; padding: 14px; border: none; border-radius: 10px;
       font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px;
+      transition: transform 0.2s;
     }
+    .btn:active { transform: scale(0.98); }
     .btn-mpesa { background: #4ade80; color: #064e3b; }
     .btn-back { background: #e5e7eb; color: #374151; }
     
     .loading { display: none; margin-top: 10px; color: #2563eb; }
     .error { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 8px; margin-top: 10px; display: none; }
-    
     #paypal-button-container { margin-top: 15px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-left: 8px; }
+    .badge-ke { background: #dcfce7; color: #166534; }
+    .badge-global { background: #dbeafe; color: #1e40af; }
   </style>
 </head>
 <body>
@@ -62,7 +67,7 @@
     <p>Get full access to Laptop Tracker features.</p>
 
     <div class="plan-box">
-      <div class="price">$20 USD</div>
+      <div class="price" id="priceDisplay">Loading price...</div>
       <div class="period">Every 4 Months</div>
       <ul class="features">
         <li>Unlimited Laptop Tracking</li>
@@ -75,85 +80,97 @@
     <div id="loading" class="loading">Processing payment...</div>
     <div id="error" class="error"></div>
 
-    <!-- M-Pesa Button -->
-    <button class="btn btn-mpesa" onclick="payMpesa()">📱 Pay with M-Pesa</button>
-    
-    <!-- PayPal Button Container -->
+    <button class="btn btn-mpesa" id="mpesaBtn" onclick="payMpesa()">📱 Pay with M-Pesa</button>
     <div id="paypal-button-container"></div>
-
     <button class="btn btn-back" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
   </div>
 
   <script>
     const token = localStorage.getItem('token');
     const auth = { 'Authorization': `Bearer ${token}` };
-    
     if (!token) window.location.href = '/';
+
+    let isKenya = false;
+
+    // 🌍 Detect Location & Update Price
+    async function initPricing() {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        isKenya = data.country_code === 'KE';
+      } catch (e) {
+        // Fallback to global pricing if detection fails
+        isKenya = false;
+      }
+
+      const priceEl = document.getElementById('priceDisplay');
+      const mpesaBtn = document.getElementById('mpesaBtn');
+      
+      if (isKenya) {
+        priceEl.innerHTML = 'KES 2,500 <span class="badge badge-ke">Kenya</span>';
+        mpesaBtn.style.display = 'block';
+        document.getElementById('paypal-button-container').style.display = 'none';
+      } else {
+        priceEl.innerHTML = '$20 USD <span class="badge badge-global">Global</span>';
+        mpesaBtn.style.display = 'none';
+        document.getElementById('paypal-button-container').style.display = 'block';
+        renderPayPal();
+      }
+    }
 
     function showError(msg) {
       const err = document.getElementById('error');
       err.textContent = msg; err.style.display = 'block';
     }
 
-    // M-Pesa Function
+    // 📱 M-Pesa Payment
     window.payMpesa = async () => {
       const phone = prompt("Enter M-Pesa Number (e.g., 0712345678):");
       if (!phone) return;
-      
       document.getElementById('loading').style.display = 'block';
       document.getElementById('error').style.display = 'none';
-
       try {
         const res = await fetch('/api/mpesa/pay', {
           method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone })
         });
         const data = await res.json();
-        if (res.ok) {
-          alert('Check your phone for the STK Push!');
-        } else {
-          showError(data.error || 'Payment failed');
-        }
+        if (res.ok) alert('Check your phone for the STK Push!');
+        else showError(data.error || 'Payment failed');
       } catch (e) { showError('Network error'); }
       document.getElementById('loading').style.display = 'none';
     };
 
-    // PayPal Integration
-    paypal.Buttons({
-      createOrder: async () => {
-        try {
-          const res = await fetch('/api/paypal/create-order', {
-            method: 'POST',
-            headers: auth
-          });
-          const data = await res.json();
-          return data.id;
-        } catch (err) {
-          showError('Failed to create PayPal order');
+    // 💳 PayPal Payment
+    function renderPayPal() {
+      paypal.Buttons({
+        createOrder: async () => {
+          try {
+            const res = await fetch('/api/paypal/create-order', { method: 'POST', headers: auth });
+            const data = await res.json();
+            return data.id;
+          } catch (err) { showError('Failed to create PayPal order'); }
+        },
+        onApprove: async (data) => {
+          document.getElementById('loading').style.display = 'block';
+          try {
+            const res = await fetch('/api/paypal/capture-order', {
+              method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderID: data.orderID })
+            });
+            const result = await res.json();
+            if (result.status === 'COMPLETED') {
+              alert('Payment Successful! Subscription Activated.');
+              window.location.href = '/dashboard?payment=success';
+            } else { showError('Payment failed or cancelled'); }
+          } catch (err) { showError('Error processing payment'); }
+          document.getElementById('loading').style.display = 'none';
         }
-      },
-      onApprove: async (data) => {
-        document.getElementById('loading').style.display = 'block';
-        try {
-          const res = await fetch('/api/paypal/capture-order', {
-            method: 'POST',
-            headers: { ...auth, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderID: data.orderID })
-          });
-          
-          const result = await res.json();
-          if (result.status === 'COMPLETED') {
-            alert('Payment Successful! Subscription Activated.');
-            window.location.href = '/dashboard?payment=success';
-          } else {
-            showError('Payment failed or cancelled');
-          }
-        } catch (err) {
-          showError('Error processing payment');
-        }
-        document.getElementById('loading').style.display = 'none';
-      }
-    }).render('#paypal-button-container');
+      }).render('#paypal-button-container');
+    }
+
+    // Run on page load
+    initPricing();
   </script>
 </body>
-</html>
+</html>

@@ -20,7 +20,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin232';
 const APP_URL = process.env.APP_URL || 'https://laptop-tracker-2h7l.onrender.com';
 
 // 🔌 Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log(' MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Error:', err));
 

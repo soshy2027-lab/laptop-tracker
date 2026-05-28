@@ -1,3 +1,4 @@
+require("./trial_logic");
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -66,6 +67,7 @@ const userSchema = new mongoose.Schema({
   verified: { type: Boolean, default: false },
   verificationToken: String,
   trialEndDate: Date,
+  trialReminderSent: { type: Boolean, default: false },
   isSubscribed: { type: Boolean, default: false },
   subscriptionExpiryDate: Date,
   provider: { type: String, default: 'local' },

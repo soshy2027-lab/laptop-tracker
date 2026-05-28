@@ -356,3 +356,5 @@ app.get('/subscription', (req, res) => res.sendFile(path.join(__dirname, 'public
 app.get('/checkin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checkin.html')));
 
 app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

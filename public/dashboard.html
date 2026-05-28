@@ -175,6 +175,11 @@
 
     <div class="card">
       <h2>My Laptops</h2>
+      <div id="laptopsList" class="laptops-grid">
+        <div style="text-align:center;padding:40px;color:#6b7280;">
+          <p>Loading laptops...</p>
+        </div>
+      </div>
       <div class="search-row">
         <input type="text" class="search" id="searchBox" placeholder="🔍 Search laptops..." onkeyup="filterTable()">
         <button onclick="exportCSV()" class="btn btn-export"> Export CSV</button>
@@ -232,6 +237,98 @@
   </div>
 
   <script>
+// 📂 Load and Display Laptops
+async function loadLaptops() {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/laptops', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (res.ok) {
+      const laptops = await res.json();
+      displayLaptops(laptops);
+    } else {
+      document.getElementById('laptopsList').innerHTML = `
+        <div style="text-align:center;color:#ef4444;padding:20px;">
+          <p>️ Failed to load laptops. Please login again.</p>
+        </div>`;
+    }
+  } catch (err) {
+    console.error('Error loading laptops:', err);
+  }
+}
+
+// 🎨 Render Laptops to the Grid
+function displayLaptops(laptops) {
+  const container = document.getElementById('laptopsList');
+  if (!laptops || laptops.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px;color:#6b7280;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <p style="margin-top:10px;">No laptops added yet. Click "Add Laptop" to get started!</p>
+      </div>`;
+    return;
+  }
+  
+  container.innerHTML = laptops.map(laptop => `
+    <div class="laptop-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-bottom:15px;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+        <div>
+          <h3 style="margin:0 0 5px;color:#1f2937;">${laptop.name}</h3>
+          <p style="margin:0;color:#6b7280;font-size:0.9rem;">SN: ${laptop.serial}</p>
+        </div>
+        <span style="background:${laptop.status === 'Stolen' ? '#fee2e2' : '#d1fae5'};color:${laptop.status === 'Stolen' ? '#991b1b' : '#065f46'};padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+          ${laptop.status}
+        </span>
+      </div>
+      <p style="margin:5px 0;color:#374151;font-size:0.9rem;">📍 ${laptop.location || 'Unknown'}</p>
+      <p style="margin:5px 0;color:#9ca3af;font-size:0.8rem;">Added: ${new Date(laptop.createdAt).toLocaleDateString()}</p>
+      
+      <div style="display:flex;gap:10px;margin-top:15px;">
+        <button onclick="editLaptop('${laptop._id}')" style="flex:1;padding:8px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;">✏️ Edit</button>
+        <button onclick="deleteLaptop('${laptop._id}')" style="flex:1;padding:8px;background:#ef4444;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;">🗑️ Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ️ Delete Laptop Function
+async function deleteLaptop(id) {
+  if (!confirm('Are you sure you want to delete this laptop? This cannot be undone.')) return;
+  
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/laptops/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (res.ok) {
+      loadLaptops(); // Refresh list
+    } else {
+      alert('Failed to delete laptop');
+    }
+  } catch (err) {
+    console.error('Delete error:', err);
+    alert('Error deleting laptop');
+  }
+}
+
+// ✏️ Edit Laptop Function
+function editLaptop(id) {
+  alert('Edit feature coming soon! ID: ' + id);
+  // You can add edit logic here later
+}
+
+// 🔄 Load data on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadLaptops();
+});
     // SUBSCRIPTION CHECK (Admins skip this)
     (async function checkSubscription() {
       const token = localStorage.getItem('token');

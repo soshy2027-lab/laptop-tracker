@@ -354,6 +354,43 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 app.get('/subscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'subscription.html')));
 app.get('/checkin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checkin.html')));
 
-app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+// 📧 21-DAY TRIAL EMAIL REMINDER (Simple Background Job)
+const sendTrialReminders = async () => {
+  try {
+    const users = await User.find({ 
+      isSubscribed: false, 
+      trialEndDate: { $exists: true } 
+    });
+    
+    const today = new Date();
+    
+    for (const user of users) {
+      const daysLeft = Math.ceil((new Date(user.trialEndDate) - today) / (1000 * 60 * 60 * 24));
+      
+      // Send email on day 21, 18, and 1
+      if ([21, 18, 1].includes(daysLeft) && !user.trialReminderSent) {
+        const subject = daysLeft === 1 ? "⚠️ Trial Ends Tomorrow!" : `⏰ ${daysLeft} Days Left in Trial`;
+        const message = `Hi ${user.name},\n\nYour Laptop Tracker free trial ends in ${daysLeft} day${daysLeft > 1 ? 's' : ''}.\n\nTo keep your laptop protected:\n✅ Real-time tracking\n✅ Theft alerts\n✅ Location history\n\nSubscribe now: https://laptop-tracker-2h7l.onrender.com\n\nStay safe!`;
+        
+        await transporter.sendMail({
+          from: process.env.SMTP_USER,
+          to: user.email,
+          subject: subject,
+          text: message
+        });
+        
+        user.trialReminderSent = true;
+        await user.save();
+        console.log(`📧 Trial reminder sent to ${user.email}`);
+      }
+    }
+  } catch (err) {
+    console.log('Trial reminder check:', err.message);
+  }
+};
 
+// Run every 6 hours
+setInterval(sendTrialReminders, 6 * 60 * 60 * 1000);
+// Run once on startup
+setTimeout(sendTrialReminders, 5000);
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -335,7 +335,8 @@
     document.getElementById('addForm').onsubmit = async(e) => {
       e.preventDefault();
       const data = { 
-        name: document.getElementById('brand').value + ' ' + document.getElementById('model').value, 
+        brand: document.getElementById('brand').value,
+        model: document.getElementById('model').value, 
         serial: document.getElementById('serial').value, 
         ram: document.getElementById('ram').value, 
         storage: document.getElementById('storage').value, 

@@ -335,9 +335,8 @@
     document.getElementById('addForm').onsubmit = async(e) => {
       e.preventDefault();
       const data = { 
-        brand: document.getElementById('brand').value, 
-        model: document.getElementById('model').value, 
-        serialNumber: document.getElementById('serial').value, 
+        name: document.getElementById('brand').value + ' ' + document.getElementById('model').value, 
+        serial: document.getElementById('serial').value, 
         ram: document.getElementById('ram').value, 
         storage: document.getElementById('storage').value, 
         status: document.getElementById('status').value, 
@@ -379,7 +378,7 @@
       const data = { 
         brand: document.getElementById('e-brand').value, 
         model: document.getElementById('e-model').value, 
-        serialNumber: document.getElementById('e-serial').value, 
+        serial: document.getElementById('e-serial').value, 
         ram: document.getElementById('e-ram').value, 
         storage: document.getElementById('e-storage').value, 
         status: document.getElementById('e-status').value 
@@ -460,6 +459,40 @@
 
     window.logout = () => { localStorage.removeItem('token'); window.location.href='/'; };
     loadData();
+window.openEdit = async (id) => {
+  const laptop = laptops.find(l => l._id === id);
+  if (!laptop) return alert('Laptop not found');
+  
+  const newBrand = prompt('Edit Brand:', laptop.brand || '');
+  if (newBrand === null) return;
+  const newModel = prompt('Edit Model:', laptop.model || '');
+  if (newModel === null) return;
+  const newSerial = prompt('Edit Serial:', laptop.serialNumber || '');
+  if (newSerial === null) return;
+  const newRam = prompt('Edit RAM:', laptop.ram || '');
+  if (newRam === null) return;
+  const newStorage = prompt('Edit Storage:', laptop.storage || '');
+  if (newStorage === null) return;
+
+  try {
+    const res = await fetch(`/api/laptops/${id}`, {
+      method: 'PUT',
+      headers: { ...auth, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        brand: newBrand, model: newModel, serial: newSerial,
+        ram: newRam, storage: newStorage
+      })
+    });
+    if (res.ok) {
+      alert('✅ Laptop updated successfully!');
+      loadData();
+    } else {
+      alert('Failed to update: ' + (await res.json()).error);
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+};
   </script>
 </body>
 </html>

@@ -322,7 +322,44 @@ app.get('/api/laptops/:id/checkin', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/laptops/:id/stolen', protect, async (req, res) => {
-  const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen || true, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true });
+  const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen || true, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true }).populate('user');
+  
+  // 📧 Send email alert if marked stolen
+  if (req.body.stolen && laptop?.user?.email) {
+    const location = laptop.lastLocation?.city ? `${laptop.lastLocation.city}, ${laptop.lastLocation.country}` : 'Unknown';
+    const mapUrl = laptop.lastLocation?.latitude ? `https://maps.google.com?q=${laptop.lastLocation.latitude},${laptop.lastLocation.longitude}` : 'No location data';
+    
+    // Email to Admin
+    await transporter.sendMail({
+      from: `"Laptop Tracker" <${process.env.SMTP_USER}>`,
+      to: ADMIN_EMAIL,
+      subject: '🚨 STOLEN LAPTOP ALERT',
+      html: `<div style="font-family:sans-serif;padding:20px;background:#fee2e2;border-left:4px solid #ef4444;">
+        <h2>🚨 Stolen Laptop Reported</h2>
+        <p><strong>User:</strong> ${laptop.user.name} (${laptop.user.email})</p>
+        <p><strong>Laptop:</strong> ${laptop.brand || ''} ${laptop.model || ''} | Serial: ${laptop.serial}</p>
+        <p><strong>Last Location:</strong> ${location}</p>
+        <p><strong>Last Seen:</strong> ${laptop.lastSeen ? new Date(laptop.lastSeen).toLocaleString() : 'Never'}</p>
+        <p><a href="${mapUrl}" style="color:#2563eb;">View on Map</a></p>
+      </div>`
+    });
+    
+    // Email to User
+    await transporter.sendMail({
+      from: `"Laptop Tracker" <${process.env.SMTP_USER}>`,
+      to: laptop.user.email,
+      subject: '🚨 Your Laptop Marked as Stolen',
+      html: `<div style="font-family:sans-serif;padding:20px;background:#f9fafb;border-radius:10px;">
+        <h2>🚨 Laptop Marked as Stolen</h2>
+        <p>Your laptop <strong>${laptop.brand || ''} ${laptop.model || ''}</strong> (Serial: ${laptop.serial}) has been marked as stolen.</p>
+        <p><strong>Last Known Location:</strong> ${location}</p>
+        <p><strong>Last Seen:</strong> ${laptop.lastSeen ? new Date(laptop.lastSeen).toLocaleString() : 'Never'}</p>
+        <p><a href="${mapUrl}" style="color:#2563eb;">View Location on Map</a></p>
+        <p style="color:#6b7280;font-size:0.9rem;">If you find your laptop, login and mark it as safe.</p>
+      </div>`
+    });
+  }
+  
   res.json(laptop);
 });
 app.get('/api/laptops/:id/location', protect, async (req, res) => {

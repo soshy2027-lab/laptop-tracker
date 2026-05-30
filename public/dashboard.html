@@ -308,7 +308,7 @@
             <td>${l.model||''}</td>
             <td>${l.ram||''}</td>
             <td>${l.storage||''}</td>
-            <td>${l.serialNumber||''}</td>
+            <td>${l.serial||''}</td>
             <td style="color:${statusColor};font-weight:bold">${statusText}</td>
             <td>${lastSeen}</td>
             <td>${location}</td>
@@ -366,7 +366,7 @@
       const l = laptops.find(x=>x.id===id); if(!l) return;
       document.getElementById('e-brand').value = l.brand||'';
       document.getElementById('e-model').value = l.model||'';
-      document.getElementById('e-serial').value = l.serialNumber||'';
+      document.getElementById('e-serial').value = l.serial||'';
       document.getElementById('e-ram').value = l.ram||'';
       document.getElementById('e-storage').value = l.storage||'';
       document.getElementById('e-status').value = l.status||'Active';
@@ -408,7 +408,7 @@
       laptops.forEach(l => {
         const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : '';
         const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : '';
-        let row = [l.brand||"",l.model||"",l.serialNumber||"",l.ram||"",l.storage||"",l.status||"",l.notes||"",lastSeen,location,l.stolen?"Yes":"No"]
+        let row = [l.brand||"",l.model||"",l.serial||"",l.ram||"",l.storage||"",l.status||"",l.notes||"",lastSeen,location,l.stolen?"Yes":"No"]
           .map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
         csvContent += row + "\n";
       });

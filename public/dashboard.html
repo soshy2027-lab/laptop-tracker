@@ -5,6 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laptop Tracker Dashboard</title>
   <style>
+    /* 📊 Professional Table Styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background-color: #111827; /* Dark background */
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #374151; /* Subtle border */
+      color: #e5e7eb; /* Light text */
+      text-align: left;
+    }
+    th {
+      background-color: #1f2937; /* Slightly lighter header */
+      color: #9ca3af; /* Grey header text */
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #1f2937; /* Highlight row on hover */
+    }
+    /* Make table scrollable on small screens */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #374151;
+    }
     :root { 
       --primary:#2563eb; --danger:#dc2626; 
       --bg:#f3f4f6; --card:#ffffff; 

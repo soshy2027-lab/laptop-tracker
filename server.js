@@ -324,8 +324,7 @@ app.get('/api/laptops/:id/checkin', async (req, res) => {
 app.put('/api/laptops/:id/stolen', protect, async (req, res) => {
   const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen || true, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true }).populate('user');
   
-console.log(">>> DEBUG: STOLEN BUTTON CLICKED <<<");
-console.log(">>> DEBUG: User Email:", laptop.user?.email);
+console.log(">>> DEBUG: User Email:", laptop.email || "Not in laptop record");
   // 📧 Send email alert if marked stolen
   if (req.body.stolen && laptop?.user?.email) {
     const location = laptop.lastLocation?.city ? `${laptop.lastLocation.city}, ${laptop.lastLocation.country}` : 'Unknown';

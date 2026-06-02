@@ -50,16 +50,18 @@ const PAYPAL_CURRENCY = process.env.PAYPAL_CURRENCY || 'USD';
 
 // 📧 Email
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT) || 587,
+  host: 'smtp.gmail.com',
+  port: 587,
   secure: false,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS
   },
   tls: {
     rejectUnauthorized: true
   },
-  socketTimeout: 10000,
-  connectionTimeout: 10000
+  connectionTimeout: 10000,
+  socketTimeout: 10000
 });
 
 // ️ Mongoose Models (Database Schemas)

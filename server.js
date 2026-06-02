@@ -327,7 +327,7 @@ app.put('/api/laptops/:id/stolen', protect, async (req, res) => {
 const userEmail = req.user?.email || laptop.email || "unknown@example.com";
 console.log(">>> DEBUG: Using Email:", userEmail);
   // 📧 Send email alert if marked stolen
-  if (req.body.stolen && laptop?.user?.email) {
+  if (req.body.stolen && req.user?.email) {
     const location = laptop.lastLocation?.city ? `${laptop.lastLocation.city}, ${laptop.lastLocation.country}` : 'Unknown';
     const mapUrl = laptop.lastLocation?.latitude ? `https://maps.google.com?q=${laptop.lastLocation.latitude},${laptop.lastLocation.longitude}` : 'No location data';
     

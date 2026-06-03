@@ -16,6 +16,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@laptoptracker.com';
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin232';
 const APP_URL = process.env.APP_URL || 'https://laptop-tracker-2h7l.onrender.com';
 

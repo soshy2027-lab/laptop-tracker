@@ -56,12 +56,7 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: SMTP_USER,
     pass: SMTP_PASS
-  },
-  tls: {
-    rejectUnauthorized: true
-  },
-  connectionTimeout: 10000,
-  socketTimeout: 10000
+  }
 });
 
 // ️ Mongoose Models (Database Schemas)

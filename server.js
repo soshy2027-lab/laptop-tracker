@@ -1,4 +1,6 @@
 require('dotenv').config();
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -133,12 +135,12 @@ async function sendConfirmationEmail(user) {
     const token = crypto.randomBytes(32).toString('hex');
     await User.findByIdAndUpdate(user._id, { verificationToken: token });
     const link = `${APP_URL}/api/auth/confirm?token=${token}`;
-    await transporter.sendMail({
-      from: `"Laptop Tracker" <${process.env.SMTP_USER}>`,
-      to: user.email,
-      subject: 'Verify Your Email',
-      html: `<div style="font-family:sans-serif;padding:20px;background:#f9fafb;border-radius:10px;"><h2>Welcome! 🚀</h2><p>Hi ${user.name}, click below to verify:</p><a href="${link}" style="padding:10px 20px;background:#2563eb;color:white;text-decoration:none;border-radius:5px;">Verify Email</a></div>`
-    });
+    await resend.emails.send({
+  from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+  to: req.user.email,
+  subject: ' LAPTOP MARKED AS STOLEN',
+  html: `<h2>Stolen Laptop Alert</h2><p>Laptop: ${laptop.name}</p><p>Serial: ${laptop.serial}</p><p>Brand: ${laptop.brand}</p>`
+});
   } catch (err) { console.error('Email error:', err); }
 }
 

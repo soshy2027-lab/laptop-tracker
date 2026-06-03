@@ -52,6 +52,12 @@ const PAYPAL_CURRENCY = process.env.PAYPAL_CURRENCY || 'USD';
 
 // 📧 Email
 const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS
+  }
+});
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,

@@ -182,7 +182,7 @@ app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-  if (!user.verified && user.provider === 'local') return res.status(403).json({ error: 'Verify email first.' });
+ // if (!user.verified && user.provider === 'local') return res.status(403).json({ error: 'Verify email first.' });
   if (!await bcrypt.compare(password, user.password)) return res.status(400).json({ error: 'Invalid credentials' });
   
   const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });

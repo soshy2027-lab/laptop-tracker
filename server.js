@@ -138,6 +138,11 @@ async function sendConfirmationEmail(user) {
     await resend.emails.send({
   from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
   to: req.user.email,
+  subject: 'LAPTOP MARKED AS STOLEN',
+  html: '<h2>Stolen Laptop Alert</h2><p>Laptop: ' + laptop.name + '</p><p>Serial: ' + laptop.serial + '</p><p>Brand: ' + laptop.brand + '</p>'
+});
+  from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+  to: req.user.email,
   subject: ' LAPTOP MARKED AS STOLEN',
   html: `<h2>Stolen Laptop Alert</h2><p>Laptop: ${laptop.name}</p><p>Serial: ${laptop.serial}</p><p>Brand: ${laptop.brand}</p>`
 });

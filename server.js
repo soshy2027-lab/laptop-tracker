@@ -256,7 +256,7 @@ app.put('/api/laptops/:id/stolen', protect, async (req, res) => {
   const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen || true, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true });
   if (req.body.stolen && req.user?.email) {
     const location = laptop.lastLocation?.city ? laptop.lastLocation.city + ', ' + laptop.lastLocation.country : 'Unknown';
-    const mapUrl = laptop.lastLocation?.latitude ? 'https://maps.google.com?q=' + laptop.lastLocation.latitude + ',' + laptop.lastLocation.longitude : 'No location data';
+    const mapUrl = laptop.lastLocation?.latitude ? 'https://maps.google.com?q=' + laptop.lastLocation.latitude + ',' + laptop.lastLocation.longitude : '#';
     try {
       await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: ADMIN_EMAIL, subject: 'STOLEN LAPTOP ALERT', html: '<h2>Stolen Laptop Reported</h2><p>User: ' + req.user.email + '</p><p>Laptop: ' + (laptop.brand || '') + ' ' + (laptop.model || '') + ' | Serial: ' + laptop.serial + '</p><p>Location: ' + location + '</p><p><a href="' + mapUrl + '">View on Map</a></p>' });
       await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: req.user.email, subject: 'Your Laptop Marked as Stolen', html: '<h2>Laptop Marked as Stolen</h2><p>Your laptop ' + (laptop.brand || '') + ' ' + (laptop.model || '') + ' (Serial: ' + laptop.serial + ') has been marked as stolen.</p><p>Location: ' + location + '</p><p><a href="' + mapUrl + '">View Location</a></p>' });

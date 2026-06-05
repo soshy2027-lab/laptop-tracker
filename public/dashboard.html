@@ -214,8 +214,11 @@
   document.addEventListener('DOMContentLoaded', () => {
     const buttons = document.querySelectorAll('button');
     buttons.forEach(btn => {
-      if (btn.innerText.includes('Watch') || btn.innerText.includes('Subscribe') || btn.innerText.includes('Logout')) {
-        btn.style.display = 'none';
+      // Only hide buttons that are NOT inside the dropdown menu
+      if (!btn.closest('#dropdown-menu')) {
+        if (btn.innerText.includes('Watch') || btn.innerText.includes('Subscribe') || btn.innerText.includes('Logout')) {
+          btn.style.display = 'none';
+        }
       }
     });
     // Hide moon icon if it exists

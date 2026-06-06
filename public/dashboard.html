@@ -413,8 +413,8 @@
       laptops.forEach(l => {
         const lastSeen = l.lastSeen ? new Date(l.lastSeen).toLocaleString() : 'Never';
         const location = l.lastLocation?.city ? `${l.lastLocation.city}, ${l.lastLocation.country}` : 'Unknown';
-        const statusColor = l.stolen ? '#ef4444' : l.status==='Active' ? '#10b981' : '#f59e0b';
-        const statusText = l.stolen ? '🚨 STOLEN' : (l.status || 'Active');
+        const statusColor = l.stolen ? '#ef4444' : '#10b981';
+        const statusText = l.stolen ? '🚨 STOLEN' : '✅ Active';
         
         tbody.innerHTML += `
           <tr>

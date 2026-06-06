@@ -253,7 +253,7 @@ app.get('/api/laptops/:id/checkin', async (req, res) => {
 });
 
 app.put('/api/laptops/:id/stolen', protect, async (req, res) => {
-  const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen || true, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true });
+  const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true });
   if (req.body.stolen && req.user?.email) {
     const location = laptop.lastLocation?.city ? laptop.lastLocation.city + ', ' + laptop.lastLocation.country : 'Unknown';
     const mapUrl = laptop.lastLocation?.latitude ? 'https://maps.google.com?q=' + laptop.lastLocation.latitude + ',' + laptop.lastLocation.longitude : '#';

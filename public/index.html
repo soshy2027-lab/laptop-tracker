@@ -118,9 +118,17 @@
   .form-row input { flex: 1; }
 </style>
 
+
+
 <style>
-  body { padding-bottom: 50px !important; }
-  .container, .card, .main-wrapper { height: auto !important; min-height: auto !important; }
+  html, body { height: auto !important; overflow-y: auto !important; }
+  .container, .card, .main-wrapper, .auth-box, .login-container, div[style*="background: white"] { 
+    height: auto !important; 
+    max-height: none !important; 
+    min-height: auto !important; 
+    overflow: visible !important; 
+  }
+  .footer-links { margin-bottom: 20px !important; }
 </style>
 
 </head>

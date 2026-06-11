@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Laptop Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 450px; padding: 30px; text-align: center; }
+    .avatar { width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; font-weight: bold; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    h1 { color: #333; margin-bottom: 5px; font-size: 24px; }
+    .role { color: #666; font-size: 14px; margin-bottom: 25px; }
+    .info-box { background: #f8f9fa; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 20px; }
+    .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e9ecef; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #666; font-size: 14px; font-weight: 600; }
+    .info-value { color: #333; font-size: 14px; text-align: right; max-width: 60%; word-break: break-all; }
+    .status-badge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 10px; }
+    .status-free { background: #e2e8f0; color: #475569; }
+    .status-premium { background: #fef3c7; color: #d97706; }
+    .btn-back { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-back:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="avatar" id="avatarInitials">U</div>
+    <h1 id="profileName">Loading...</h1>
+    <p class="role">Laptop Tracker User</p>
+    
+    <div class="info-box">
+      <div class="info-row">
+        <span class="info-label">Email</span>
+        <span class="info-value" id="profileEmail">...</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Phone</span>
+        <span class="info-value" id="profilePhone">...</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Member Since</span>
+        <span class="info-value" id="profileDate">...</span>
+      </div>
+      <div class="info-row" style="flex-direction: column; align-items: center;">
+        <span class="info-label" style="margin-bottom: 5px;">Subscription Status</span>
+        <span class="status-badge status-free" id="profileStatus">Free Trial</span>
+      </div>
+    </div>
+
+    <button class="btn-back" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+  </div>
+
+  <script>
+    // Simple script to show placeholder data for now
+    document.getElementById('profileName').textContent = 'Laptop Tracker User';
+    document.getElementById('profileEmail').textContent = 'user@example.com';
+    document.getElementById('profilePhone').textContent = '+254 700 000 000';
+    document.getElementById('profileDate').textContent = 'June 2026';
+  </script>
+</body>
+</html>

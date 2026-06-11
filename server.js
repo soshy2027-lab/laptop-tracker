@@ -383,13 +383,9 @@ app.post('/api/auth/reset-password', async (req, res) => {
 });
 
 
-// Profile and Settings Routes
+// Profile Route
 app.get('/profile', (req, res) => {
   res.sendFile(__dirname + '/public/profile.html');
-});
-
-app.get('/settings', (req, res) => {
-  res.sendFile(__dirname + '/public/settings.html');
 });
 
 app.listen(PORT, () => console.log('Server running on port ' + PORT));

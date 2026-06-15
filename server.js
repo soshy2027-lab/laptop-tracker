@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema({
 const laptopSchema = new mongoose.Schema({
   user: String, name: String, serial: String, brand: String, model: String, ram: String, storage: String,
   status: { type: String, default: 'Active' }, stolen: { type: Boolean, default: false },
+  obNumber: String, policeStation: String, reportDate: Date,
   lastIpAddress: String, lastLocation: Object, lastSeen: Date
 });
 
@@ -253,13 +254,20 @@ app.get('/api/laptops/:id/checkin', async (req, res) => {
 });
 
 app.put('/api/laptops/:id/stolen', protect, async (req, res) => {
-  const laptop = await Laptop.findByIdAndUpdate(req.params.id, { stolen: req.body.stolen, status: req.body.stolen ? 'Stolen' : 'Active' }, { new: true });
+  const updateData = { 
+    stolen: req.body.stolen, 
+    status: req.body.stolen ? 'Stolen' : 'Active',
+    obNumber: req.body.obNumber || '',
+    policeStation: req.body.policeStation || '',
+    reportDate: req.body.reportDate || null
+  };
+  const laptop = await Laptop.findByIdAndUpdate(req.params.id, updateData, { new: true });
   if (req.body.stolen && req.user?.email) {
     const location = laptop.lastLocation?.city ? laptop.lastLocation.city + ', ' + laptop.lastLocation.country : 'Unknown';
     const mapUrl = laptop.lastLocation?.latitude ? 'https://maps.google.com?q=' + laptop.lastLocation.latitude + ',' + laptop.lastLocation.longitude : '#';
     try {
-      await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: ADMIN_EMAIL, subject: 'STOLEN LAPTOP ALERT', html: '<h2>Stolen Laptop Reported</h2><p>User: ' + req.user.email + '</p><p>Laptop: ' + (laptop.brand || '') + ' ' + (laptop.model || '') + ' | Serial: ' + laptop.serial + '</p><p>Location: ' + location + '</p><p><a href="' + mapUrl + '">View on Map</a></p>' });
-      await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: req.user.email, subject: 'Your Laptop Marked as Stolen', html: '<h2>Laptop Marked as Stolen</h2><p>Your laptop ' + (laptop.brand || '') + ' ' + (laptop.model || '') + ' (Serial: ' + laptop.serial + ') has been marked as stolen.</p><p>Location: ' + location + '</p><p><a href="' + mapUrl + '">View Location</a></p>' });
+      await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: ADMIN_EMAIL, subject: 'STOLEN LAPTOP ALERT', html: '<h2>Stolen Laptop Reported</h2><p>User: ' + req.user.email + '</p><p>Laptop: ' + (laptop.brand || '') + ' ' + (laptop.model || '') + ' | Serial: ' + laptop.serial + '</p><p><strong>OB Number:</strong> ' + (laptop.obNumber || 'Not provided') + '</p><p><strong>Police Station:</strong> ' + (laptop.policeStation || 'Not provided') + '</p><p><strong>Report Date:</strong> ' + (laptop.reportDate ? new Date(laptop.reportDate).toLocaleDateString() : 'Not provided') + '</p><p>Location: ' + location + '</p><p><a href="' + mapUrl + '">View on Map</a></p>' });
+      await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: req.user.email, subject: 'Your Laptop Marked as Stolen', html: '<h2>Laptop Marked as Stolen</h2><p>Your laptop ' + (laptop.brand || '') + ' ' + (laptop.model || '') + ' (Serial: ' + laptop.serial + ') has been marked as stolen.</p><p><strong>OB Number:</strong> ' + (laptop.obNumber || 'Not provided') + '</p><p><strong>Police Station:</strong> ' + (laptop.policeStation || 'Not provided') + '</p><p><strong>Report Date:</strong> ' + (laptop.reportDate ? new Date(laptop.reportDate).toLocaleDateString() : 'Not provided') + '</p><p>Location: ' + location + '</p><p><a href="' + mapUrl + '">View Location</a></p>' });
     } catch (err) { console.error('Email error:', err); }
   }
   res.json(laptop);

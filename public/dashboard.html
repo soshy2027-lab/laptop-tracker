@@ -626,7 +626,7 @@ window.openEdit = async (id) => {
     });
     if (res.ok) {
       alert('✅ Laptop updated successfully!');
-      loadData();
+      document.addEventListener('DOMContentLoaded', loadData);
     } else {
       alert('Failed to update: ' + (await res.json()).error);
     }

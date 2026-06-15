@@ -568,7 +568,7 @@
       }
     };
 
-    document.getElementById('confirmStolenBtn').onclick = () => {
+    setTimeout(() => { document.getElementById('confirmStolenBtn').onclick = () => {
       const obNumber = document.getElementById('obNumber').value.trim();
       const policeStation = document.getElementById('obPoliceStation').value.trim();
       const reportDate = document.getElementById('obDate').value;
@@ -580,7 +580,7 @@
 
       sendStolenUpdate(pendingStolenId, true, obNumber, policeStation, reportDate);
       document.getElementById('obModal').style.display = 'none';
-    };
+    }; }, 100);
 
     async function sendStolenUpdate(id, stolen, obNumber = '', policeStation = '', reportDate = '') {
       try {
@@ -626,7 +626,7 @@ window.openEdit = async (id) => {
     });
     if (res.ok) {
       alert('✅ Laptop updated successfully!');
-      document.addEventListener('DOMContentLoaded', loadData);
+      loadData();
     } else {
       alert('Failed to update: ' + (await res.json()).error);
     }

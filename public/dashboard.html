@@ -274,8 +274,13 @@
     </div>
 
     <div class="card">
-      <h2>Add New Laptop</h2>
+      <h2>Add New Device</h2>
       <form id="addForm">
+    <label style="font-weight:bold; display:block; margin-bottom:5px;">Select Device Type:</label>
+    <select id="deviceType" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px; font-size:16px;">
+        <option value="Laptop"> Laptop</option>
+        <option value="Phone">📱 Phone</option>
+    </select>
         <div class="grid">
           <input type="text" id="brand" placeholder="Brand (e.g. HP)" required>
           <input type="text" id="model" placeholder="Model (e.g. Pavilion)" required>
@@ -285,13 +290,13 @@
           <select id="status"><option>Active</option><option>In Repair</option><option>Retired</option></select>
           <input type="text" id="notes" placeholder="Notes (optional)" class="full">
         </div>
-        <button type="submit" class="btn-add">Add Laptop</button>
+        <button type="submit" class="btn-add">Add Device</button>
       </form>
       <p id="msg"></p>
     </div>
 
     <div class="card">
-      <h2>My Laptops</h2>
+      <h2>My Devices</h2>
       <div class="search-row">
         <input type="text" class="search" id="searchBox" placeholder="🔍 Search laptops..." onkeyup="filterTable()">
         <button onclick="exportCSV()" class="btn btn-export"> Export CSV</button>
@@ -300,6 +305,7 @@
         <table>
           <thead>
             <tr>
+              <th>Type</th>
               <th>Brand</th>
               <th>Model</th>
               <th>RAM</th>
@@ -410,7 +416,7 @@
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
       if(laptops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--light);">No laptops yet. Add one above!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--light);">No laptops yet. Add one above!</td></tr>';
         return;
       }
       laptops.forEach(l => {
@@ -421,6 +427,7 @@
         
         tbody.innerHTML += `
           <tr>
+            <td>${l.deviceType === 'Phone' ? '📱 Phone' : '💻 Laptop'}</td>
             <td><strong>${l.brand||''}</strong></td>
             <td>${l.model||''}</td>
             <td>${l.ram||''}</td>
@@ -452,6 +459,7 @@
     document.getElementById('addForm').onsubmit = async(e) => {
       e.preventDefault();
       const data = { 
+        deviceType: document.getElementById('deviceType').value,
         brand: document.getElementById('brand').value,
         model: document.getElementById('model').value, 
         serial: document.getElementById('serial').value, 

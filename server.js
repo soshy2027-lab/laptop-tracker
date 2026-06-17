@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const laptopSchema = new mongoose.Schema({
-  user: String, name: String, serial: String, brand: String, model: String, ram: String, storage: String,
+  user: String, deviceType: { type: String, default: 'Laptop' }, name: String, serial: String, brand: String, model: String, ram: String, storage: String,
   status: { type: String, default: 'Active' }, stolen: { type: Boolean, default: false },
   obNumber: String, policeStation: String, reportDate: Date,
   lastIpAddress: String, lastLocation: Object, lastSeen: Date

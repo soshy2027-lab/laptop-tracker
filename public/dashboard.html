@@ -488,7 +488,7 @@
         
         tbody.innerHTML += `
           <tr>
-            <td><span style="background:${l.deviceType === 'Phone' ? '#fef3c7' : '#dbeafe'}; color:${l.deviceType === 'Phone' ? '#92400e' : '#1e40af'}; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">${l.deviceType === 'Phone' ? '📱 Phone' : '💻 Laptop'}</span></td>
+            <td style="font-weight:bold; color:#e5e7eb;">${l.deviceType === 'Phone' ? '📱 Phone' : '💻 Laptop'}</td>
             <td><strong>${l.brand||''}</strong></td>
             <td>${l.model||''}</td>
             <td>${l.ram||''}</td>

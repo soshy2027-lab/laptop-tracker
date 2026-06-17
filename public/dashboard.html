@@ -271,13 +271,13 @@
 
     <!-- TRACKER DOWNLOAD BOX -->
     <div class="tracker-box">
-      <h3> Auto-Tracker for Your Laptop</h3>
+      <h3> Auto-Tracker for Your Device</h3>
       <p>Download this page and keep it open on your laptop to auto-report location every 5 minutes.</p>
       <a href="/tracker.html" target="_blank" class="btn-download">📥 Open Tracker Page</a>
     </div>
 
     <div class="stats">
-      <div class="stat s-blue"><h3>Total Laptops</h3><p id="st-tot">0</p></div>
+      <div class="stat s-blue"><h3>Total Devices</h3><p id="st-tot">0</p></div>
       <div class="stat s-green"><h3>Active</h3><p id="st-act">0</p></div>
       <div class="stat s-red"><h3>Stolen</h3><p id="st-stolen">0</p></div>
     </div>
@@ -482,7 +482,9 @@
         body:JSON.stringify(data) 
       });
       if(res.ok) {
-        document.getElementById('msg').textContent = '✅ Laptop added successfully!';
+        const deviceType = document.getElementById('deviceType').value;
+        const msgText = deviceType === 'Phone' ? '✅ Phone added successfully!' : '✅ Laptop added successfully!';
+        document.getElementById('msg').textContent = msgText;
         setTimeout(()=>document.getElementById('msg').textContent='', 3000);
         e.target.reset();
         loadData();

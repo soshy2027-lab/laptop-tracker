@@ -156,6 +156,16 @@
       .header{flex-direction:column; align-items:flex-start;}
       .header-buttons{width:100%; justify-content:flex-start;}
     }
+  
+    /* Trial Banner Styling */
+    .trial-banner { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .trial-content { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .trial-icon { font-size: 24px; }
+    .trial-text { display: flex; flex-direction: column; }
+    .trial-text strong { font-size: 16px; }
+    .trial-text span { font-size: 14px; opacity: 0.9; }
+    .trial-btn { background: white; color: #d97706; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
+
   </style>
 
 <style>
@@ -197,7 +207,17 @@
   }
   #dropdown-menu button:last-child { border-bottom: none; }
   #dropdown-menu button:hover { background: #f9fafb; }
-</style>
+
+    /* Trial Banner Styling */
+    .trial-banner { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .trial-content { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .trial-icon { font-size: 24px; }
+    .trial-text { display: flex; flex-direction: column; }
+    .trial-text strong { font-size: 16px; }
+    .trial-text span { font-size: 14px; opacity: 0.9; }
+    .trial-btn { background: white; color: #d97706; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
+
+  </style>
 
 </head>
 
@@ -252,7 +272,28 @@
         addBtn.textContent = this.value === 'Phone' ? 'Add Phone' : 'Add Laptop';
       });
     }
-</script>
+
+    // Free Trial Countdown Logic
+    async function loadTrialInfo() {
+      try {
+        const res = await fetch('/api/profile', { headers: auth });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.subscriptionExpiryDate && !data.isSubscribed) {
+            const expiry = new Date(data.subscriptionExpiryDate);
+            const now = new Date();
+            const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+            if (diffDays > 0) {
+              document.getElementById('trialDays').textContent = diffDays + ' days remaining';
+              document.getElementById('trialBanner').style.display = 'block';
+            }
+          }
+        }
+      } catch(e) {}
+    }
+    loadTrialInfo();
+
+  </script>
 
 <body>
   <div class="wrap">
@@ -274,6 +315,18 @@
       <h3> Auto-Tracker for Your Device</h3>
       <p>Download this page and keep it open on your laptop to auto-report location every 5 minutes.</p>
       <a href="/tracker.html" target="_blank" class="btn-download">📥 Open Tracker Page</a>
+    </div>
+
+    <!-- FREE TRIAL BANNER -->
+    <div id="trialBanner" class="trial-banner" style="display:none;">
+      <div class="trial-content">
+        <span class="trial-icon">⏳</span>
+        <div class="trial-text">
+          <strong>Free Trial Active</strong>
+          <span id="trialDays">Loading...</span>
+        </div>
+        <a href="/subscription" class="trial-btn">Subscribe Now</a>
+      </div>
     </div>
 
     <div class="stats">
@@ -652,6 +705,27 @@ window.openEdit = async (id) => {
     alert('Error: ' + err.message);
   }
 };
+  
+    // Free Trial Countdown Logic
+    async function loadTrialInfo() {
+      try {
+        const res = await fetch('/api/profile', { headers: auth });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.subscriptionExpiryDate && !data.isSubscribed) {
+            const expiry = new Date(data.subscriptionExpiryDate);
+            const now = new Date();
+            const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+            if (diffDays > 0) {
+              document.getElementById('trialDays').textContent = diffDays + ' days remaining';
+              document.getElementById('trialBanner').style.display = 'block';
+            }
+          }
+        }
+      } catch(e) {}
+    }
+    loadTrialInfo();
+
   </script>
 
 <!-- OB Number Modal -->
@@ -704,6 +778,16 @@ window.generatePoliceReport = function(id) {
     .badge-laptop { background: #dbeafe; color: #1e40af; }
     .badge-phone { background: #fef3c7; color: #92400e; }
     @media print { body { padding: 20px; } .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  
+    /* Trial Banner Styling */
+    .trial-banner { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .trial-content { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .trial-icon { font-size: 24px; }
+    .trial-text { display: flex; flex-direction: column; }
+    .trial-text strong { font-size: 16px; }
+    .trial-text span { font-size: 14px; opacity: 0.9; }
+    .trial-btn { background: white; color: #d97706; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
+
   </style>
 </head>
 <body>
@@ -755,6 +839,27 @@ window.generatePoliceReport = function(id) {
   win.document.write(reportHTML);
   win.document.close();
 };
-</script>
+
+    // Free Trial Countdown Logic
+    async function loadTrialInfo() {
+      try {
+        const res = await fetch('/api/profile', { headers: auth });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.subscriptionExpiryDate && !data.isSubscribed) {
+            const expiry = new Date(data.subscriptionExpiryDate);
+            const now = new Date();
+            const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+            if (diffDays > 0) {
+              document.getElementById('trialDays').textContent = diffDays + ' days remaining';
+              document.getElementById('trialBanner').style.display = 'block';
+            }
+          }
+        }
+      } catch(e) {}
+    }
+    loadTrialInfo();
+
+  </script>
 </body>
 </html>

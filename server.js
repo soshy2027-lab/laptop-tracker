@@ -49,7 +49,7 @@ const PAYPAL_CURRENCY = process.env.PAYPAL_CURRENCY || 'USD';
 const userSchema = new mongoose.Schema({
   name: String, email: { type: String, unique: true, required: true }, password: String,
   role: { type: String, default: 'user' }, phone: String, verified: { type: Boolean, default: false },
-  verificationToken: String, trialEndDate: Date, trialReminderSent: { type: Boolean, default: false },
+  verificationToken: String, subscriptionExpiryDate: Date, trialReminderSent: { type: Boolean, default: false },
   isSubscribed: { type: Boolean, default: false }, subscriptionExpiryDate: Date,
   provider: { type: String, default: 'local' },
   paymentHistory: [{ amount: Number, currency: String, date: Date, method: String }]
@@ -123,8 +123,8 @@ app.post('/api/auth/register', async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'Email already exists' });
     const hashed = await bcrypt.hash(password, 10);
-    const trialEndDate = new Date(); trialEndDate.setDate(trialEndDate.getDate() + 21);
-    const newUser = await User.create({ name, email, password: hashed, role: 'user', verified: false, trialEndDate, isSubscribed: false, provider: 'local' });
+    const subscriptionExpiryDate = new Date(); subscriptionExpiryDate.setDate(subscriptionExpiryDate.getDate() + 21);
+    const newUser = await User.create({ name, email, password: hashed, role: 'user', verified: false, subscriptionExpiryDate, isSubscribed: false, provider: 'local' });
     await sendConfirmationEmail(newUser);
     const token = jwt.sign({ id: newUser._id, role: newUser.role, email: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { id: newUser._id, name, email, role: newUser.role } });
@@ -139,8 +139,8 @@ app.post('/api/auth/google', async (req, res) => {
     const payload = ticket.getPayload();
     let user = await User.findOne({ email: payload.email });
     if (!user) {
-      const trialEndDate = new Date(); trialEndDate.setDate(trialEndDate.getDate() + 21);
-      user = await User.create({ name: payload.name, email: payload.email, password: 'GOOGLE_USER', role: 'user', verified: true, trialEndDate, isSubscribed: false, provider: 'google' });
+      const subscriptionExpiryDate = new Date(); subscriptionExpiryDate.setDate(subscriptionExpiryDate.getDate() + 21);
+      user = await User.create({ name: payload.name, email: payload.email, password: 'GOOGLE_USER', role: 'user', verified: true, subscriptionExpiryDate, isSubscribed: false, provider: 'google' });
     }
     const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
@@ -245,7 +245,7 @@ const checkSub = (req, res, next) => {
     if (user && user.role === 'admin') return next();
     const now = new Date();
     const subExpiry = user.subscriptionExpiryDate ? new Date(user.subscriptionExpiryDate) : null;
-    const trialEnd = new Date(user.trialEndDate || Date.now());
+    const trialEnd = new Date(user.subscriptionExpiryDate || Date.now());
     if (now < trialEnd) return next();
     if (user.isSubscribed && subExpiry && now < subExpiry) return next();
     res.status(403).json({ error: 'Subscription expired.' });
@@ -358,10 +358,10 @@ app.get('/checkin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'c
 
 const sendTrialReminders = async () => {
   try {
-    const users = await User.find({ isSubscribed: false, trialEndDate: { $exists: true } });
+    const users = await User.find({ isSubscribed: false, subscriptionExpiryDate: { $exists: true } });
     const today = new Date();
     for (const user of users) {
-      const daysLeft = Math.ceil((new Date(user.trialEndDate) - today) / (1000 * 60 * 60 * 24));
+      const daysLeft = Math.ceil((new Date(user.subscriptionExpiryDate) - today) / (1000 * 60 * 60 * 24));
       if ([21, 18, 1].includes(daysLeft) && !user.trialReminderSent) {
         const subject = daysLeft === 1 ? 'Trial Ends Tomorrow!' : daysLeft + ' Days Left in Trial';
         await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: user.email, subject: subject, html: '<p>Hi ' + user.name + ', your trial ends in ' + daysLeft + ' days. Subscribe: https://laptop-tracker-2h7l.onrender.com</p>' });
@@ -447,7 +447,7 @@ app.get('/api/auth/profile', verifyToken, async (req, res) => {
       email: user.email,
       phone: user.phone || 'Not provided',
       memberSince: user.createdAt || new Date(),
-      trialEndDate: user.trialEndDate,
+      subscriptionExpiryDate: user.subscriptionExpiryDate,
       isSubscribed: user.isSubscribed,
       subscriptionExpiryDate: user.subscriptionExpiryDate
     });

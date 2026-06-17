@@ -213,23 +213,7 @@
 </div>
 
 <script>
-  // Hide old buttons
-  document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(btn => {
-      // Only hide buttons that are NOT inside the dropdown menu
-      if (!btn.closest('#dropdown-menu')) {
-        if (btn.innerText.includes('Watch') || btn.innerText.includes('Subscribe') || btn.innerText.includes('Logout')) {
-          btn.style.display = 'none';
-        }
-      }
-    });
-    // Hide moon icon if it exists
-    const icons = document.querySelectorAll('i, span');
-    icons.forEach(icon => {
-      if (icon.className && icon.className.includes('moon')) icon.style.display = 'none';
-    });
-  });
+
 
   // Toggle menu
   document.getElementById('hamburger-btn').addEventListener('click', () => {
@@ -245,7 +229,7 @@
   });
 
     function generatePoliceReport(id) {
-      const l = laptops.find(x => x._id === id);
+      const l = laptops.find(x => String(x._id) === id);
       if(!l) return;
       const win = window.open('', '_blank');
       win.document.write(`
@@ -283,9 +267,7 @@
       </div>
       <div class="header-buttons">
         <button class="btn btn-watch" onclick="openVideo()">🎥 Watch</button>
-        <button class="btn btn-sub" onclick="window.location.href='/subscription'"> Subscribe</button>
-        <button class="btn btn-theme" id="themeToggle" onclick="toggleTheme()">🌙</button>
-        <button class="btn btn-logout" onclick="logout()">Logout</button>
+
       </div>
     </div>
 

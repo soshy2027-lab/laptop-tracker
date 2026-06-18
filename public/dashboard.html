@@ -228,6 +228,7 @@
   <button onclick="toggleTheme()">Mode</button>
   <button onclick="window.location.href='/contact.html'">Contact Us</button>
   <button onclick="window.location.href='/profile'">Profile</button>
+  <button id="installBtn" style="display:none;" onclick="installApp()">📱 Install App</button>
   <button onclick="window.location.href='/dashboard'">Homepage</button>
   <button onclick="logout()">Logout</button>
 </div>
@@ -293,7 +294,26 @@
     }
     loadTrialInfo();
 
-  </script>
+  
+    // PWA Install Button Logic
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').style.display = 'block';
+    });
+
+    window.installApp = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('installBtn').style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    };
+</script>
 
 <body>
   <div class="wrap">

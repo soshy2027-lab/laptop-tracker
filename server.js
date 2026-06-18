@@ -241,13 +241,19 @@ app.post('/api/mpesa/callback', async (req, res) => {
 });
 
 const checkSub = (req, res, next) => {
-  User.findById(req.user.id).then(user => {
+  User.findById(req.user.id).then(async user => {
     if (user && user.role === 'admin') return next();
     const now = new Date();
-    const subExpiry = user.subscriptionExpiryDate ? new Date(user.subscriptionExpiryDate) : null;
-    const trialEnd = new Date(user.subscriptionExpiryDate || Date.now());
-    if (now < trialEnd) return next();
-    if (user.isSubscribed && subExpiry && now < subExpiry) return next();
+    // If no expiry date exists (legacy users), give them a 21-day trial and save it
+    if (!user.subscriptionExpiryDate) {
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 21);
+      user.subscriptionExpiryDate = trialEnd;
+      await user.save();
+      return next();
+    }
+    const subExpiry = new Date(user.subscriptionExpiryDate);
+    if (now < subExpiry) return next();
     res.status(403).json({ error: 'Subscription expired.' });
   });
 };

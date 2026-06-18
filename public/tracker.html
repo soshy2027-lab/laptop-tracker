@@ -205,5 +205,14 @@
       document.getElementById('laptopId').value = '';
     };
   </script>
+
+<script>
+  // Auto-fill ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const deviceId = urlParams.get('id');
+  if (deviceId) {
+    document.getElementById('laptopId').value = deviceId;
+  }
+</script>
 </body>
 </html>

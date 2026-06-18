@@ -558,12 +558,15 @@
         body:JSON.stringify(data) 
       });
       if(res.ok) {
+        const newDevice = await res.json(); // Get the new device ID from server
         const deviceType = document.getElementById('deviceType').value;
         const msgText = deviceType === 'Phone' ? '✅ Phone added successfully!' : '✅ Laptop added successfully!';
         document.getElementById('msg').textContent = msgText;
         setTimeout(()=>document.getElementById('msg').textContent='', 3000);
         e.target.reset();
         loadData();
+        // Automatically open tracker page with ID filled in
+        window.open('/tracker.html?id=' + newDevice._id, '_blank');
       } else alert('Failed to add laptop');
     };
 

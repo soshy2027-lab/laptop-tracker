@@ -228,7 +228,7 @@
   <button onclick="toggleTheme()">Mode</button>
   <button onclick="window.location.href='/contact.html'">Contact Us</button>
   <button onclick="window.location.href='/profile'">Profile</button>
-  <button id="installBtn" style="display:none;" onclick="installApp()">📱 Install App</button>
+  <button id="installBtn" onclick="installApp()">📱 Install App</button>
   <button onclick="window.location.href='/dashboard'">Homepage</button>
   <button onclick="logout()">Logout</button>
 </div>
@@ -277,7 +277,7 @@
     // Free Trial Countdown Logic
     async function loadTrialInfo() {
       try {
-        const res = await fetch('/api/profile', { headers: auth });
+        const res = await fetch('/api/auth/profile', { headers: auth });
         if (res.ok) {
           const data = await res.json();
           if (data.subscriptionExpiryDate && !data.isSubscribed) {
@@ -300,7 +300,6 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('installBtn').style.display = 'block';
     });
 
     window.installApp = async () => {
@@ -308,9 +307,12 @@
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-          document.getElementById('installBtn').style.display = 'none';
+          alert('✅ App installed successfully!');
         }
         deferredPrompt = null;
+      } else {
+        // Show manual installation instructions
+        alert('To install the app:\n\n**On Android (Chrome):**\n1. Tap the 3 dots (⋮) in top right\n2. Tap "Install app" or "Add to Home screen"\n\n**On iPhone (Safari):**\n1. Tap the Share button (□↑)\n2. Tap "Add to Home Screen"\n3. Tap "Add"');
       }
     };
 </script>
@@ -730,7 +732,7 @@ window.openEdit = async (id) => {
     // Free Trial Countdown Logic
     async function loadTrialInfo() {
       try {
-        const res = await fetch('/api/profile', { headers: auth });
+        const res = await fetch('/api/auth/profile', { headers: auth });
         if (res.ok) {
           const data = await res.json();
           if (data.subscriptionExpiryDate && !data.isSubscribed) {
@@ -864,7 +866,7 @@ window.generatePoliceReport = function(id) {
     // Free Trial Countdown Logic
     async function loadTrialInfo() {
       try {
-        const res = await fetch('/api/profile', { headers: auth });
+        const res = await fetch('/api/auth/profile', { headers: auth });
         if (res.ok) {
           const data = await res.json();
           if (data.subscriptionExpiryDate && !data.isSubscribed) {

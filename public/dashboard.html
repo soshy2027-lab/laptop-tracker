@@ -521,6 +521,7 @@
     document.getElementById('addForm').onsubmit = async(e) => {
       e.preventDefault();
       const data = { 
+        deviceType: document.getElementById('deviceType').value,
         brand: document.getElementById('brand').value,
         model: document.getElementById('model').value, 
         serial: document.getElementById('serial').value, 

@@ -140,8 +140,21 @@
         try {
           const res = await fetch('/api/paypal/create-order', { method: 'POST', headers: auth });
           const data = await res.json();
+          console.log('PayPal Order Response:', data);
+          if (!res.ok) {
+            showError(data.error || 'Server error creating order');
+            throw new Error(data.error || 'Server error');
+          }
+          if (!data.id) {
+            showError('Invalid response from server');
+            throw new Error('No order ID');
+          }
           return data.id;
-        } catch (err) { showError('Failed to create PayPal order'); }
+        } catch (err) { 
+          console.error('PayPal createOrder error:', err);
+          showError('Failed to create PayPal order: ' + err.message);
+          throw err;
+        }
       },
       onApprove: async (data) => {
         document.getElementById('loading').style.display = 'block';

@@ -103,6 +103,7 @@
     
     <div id="paypal-button-container"></div>
     
+    <button class="btn btn-pesapal" onclick="payPesapal()" style="background-color: #005b9f; color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin: 15px 0; cursor: pointer;">💳 Pay with Pesapal (Card & Mobile Money)</button>
     <button class="btn btn-back" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
   </div>
 
@@ -173,5 +174,29 @@
       }
     }).render('#paypal-button-container');
   </script>
+
+<script>
+window.payPesapal = async () => {
+  const btn = event.target;
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/pesapal/submit-order', { method: 'POST', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token'), 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: 2500 }) });
+    const data = await res.json();
+    if (data.redirect_url) {
+      window.location.href = data.redirect_url;
+    } else {
+      alert(data.error || 'Pesapal failed');
+      btn.textContent = '💳 Pay with Pesapal (Card & Mobile Money)';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Network error');
+    btn.textContent = '💳 Pay with Pesapal (Card & Mobile Money)';
+    btn.disabled = false;
+  }
+};
+</script>
+
 </body>
 </html>

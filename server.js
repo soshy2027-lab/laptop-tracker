@@ -468,3 +468,39 @@ app.get('/profile', (req, res) => {
 });
 
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
+// --- PESAPAL INTEGRATION ---
+const PESAPAL_CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY;
+const PESAPAL_CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
+const PESAPAL_BASE_URL = 'https://cybqa.pesapal.com/pesapalv3';
+
+async function getPesapalToken() {
+  const res = await axios.post(`${PESAPAL_BASE_URL}/api/Auth/RequestToken`, {
+    consumer_key: PESAPAL_CONSUMER_KEY,
+    consumer_secret: PESAPAL_CONSUMER_SECRET
+  });
+  return res.data.token;
+}
+
+app.post('/api/pesapal/submit-order', protect, async (req, res) => {
+  try {
+    const token = await getPesapalToken();
+    const orderData = {
+      id: req.user._id.toString(),
+      currency_code: 'KES',
+      amount: 2500,
+      description: 'Laptop Tracker Subscription',
+      callback_url: 'https://laptop-tracker-2h7l.onrender.com/dashboard',
+      notification_id: '',
+      ordering_reference: 'LAPTOP_' + Date.now(),
+      meta_data: [{ key: 'user_id', value: req.user._id.toString() }],
+      items: [{ title: 'Subscription', quantity: 1, unit_cost: 2500 }]
+    };
+    const response = await axios.post(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, orderData, {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' }
+    });
+    res.json({ redirect_url: response.data.RedirectURL });
+  } catch (err) {
+    res.status(500).json({ error: 'Pesapal failed' });
+  }
+});
+// --- END PESAPAL ---

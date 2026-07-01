@@ -485,15 +485,24 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
   try {
     const token = await getPesapalToken();
     const orderData = {
-      id: req.user._id.toString(),
+      id: 'LAPTOP_' + Date.now(),
       currency_code: 'KES',
-      amount: 2500,
-      description: 'Laptop Tracker Subscription',
+      amount: 2500.00,
+      description: 'Laptop Tracker Subscription - 4 Months',
       callback_url: 'https://laptop-tracker-2h7l.onrender.com/dashboard',
       notification_id: '',
       ordering_reference: 'LAPTOP_' + Date.now(),
-      meta_data: [{ key: 'user_id', value: req.user._id.toString() }],
-      items: [{ title: 'Subscription', quantity: 1, unit_cost: 2500 }]
+      meta_data: [],
+      items: [
+        {
+          title: 'Laptop Tracker Subscription',
+          description: '4 months unlimited tracking',
+          unit_cost: 2500.00,
+          quantity: 1,
+          sku_code: 'LAPTOP_SUB_4M',
+          tax: 0.00
+        }
+      ]
     };
     const response = await axios.post(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, orderData, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' }

@@ -492,7 +492,8 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
     console.log('✅ Got Pesapal token');
     const orderData = {
       id: 'LAPTOP_' + Date.now(),
-      currency_code: 'KES',
+      type: 'MERCHANT',
+      currency: 'KES',
       amount: 2500.00,
       description: 'Laptop Tracker Subscription - 4 Months',
       callback_url: 'https://laptop-tracker-2h7l.onrender.com/dashboard',

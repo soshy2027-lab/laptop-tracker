@@ -500,7 +500,11 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
     });
     res.json({ redirect_url: response.data.RedirectURL });
   } catch (err) {
-    res.status(500).json({ error: 'Pesapal failed' });
+    res.status(500).json({ 
+      error: 'Pesapal failed', 
+      details: err.response?.data || err.message,
+      status: err.response?.status 
+    });
   }
 });
 // --- END PESAPAL ---

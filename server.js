@@ -471,7 +471,7 @@ app.listen(PORT, () => console.log('Server running on port ' + PORT));
 // --- PESAPAL INTEGRATION ---
 const PESAPAL_CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY;
 const PESAPAL_CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
-const PESAPAL_BASE_URL = 'https://cybqa.pesapal.com/pesapalv3';
+const PESAPAL_BASE_URL = 'https://pay.pesapal.com/v3';
 
 async function getPesapalToken() {
   const res = await axios.post(`${PESAPAL_BASE_URL}/api/Auth/RequestToken`, {

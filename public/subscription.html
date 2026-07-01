@@ -186,7 +186,7 @@ window.payPesapal = async () => {
     if (data.redirect_url) {
       window.location.href = data.redirect_url;
     } else {
-      alert(data.error || 'Pesapal failed');
+      alert('ERROR: ' + JSON.stringify(data));
       btn.textContent = '💳 Pay with Pesapal (Card & Mobile Money)';
       btn.disabled = false;
     }

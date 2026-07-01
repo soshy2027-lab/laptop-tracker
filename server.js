@@ -483,7 +483,13 @@ async function getPesapalToken() {
 
 app.post('/api/pesapal/submit-order', protect, async (req, res) => {
   try {
+    console.log('=== PESAPAL REQUEST STARTED ===');
+    console.log('User ID:', req.user._id);
+    console.log('Consumer Key:', PESAPAL_CONSUMER_KEY);
+    console.log('Base URL:', PESAPAL_BASE_URL);
+    
     const token = await getPesapalToken();
+    console.log('✅ Got Pesapal token');
     const orderData = {
       id: 'LAPTOP_' + Date.now(),
       currency_code: 'KES',
@@ -504,11 +510,19 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
         }
       ]
     };
+    console.log('Sending order to Pesapal...');
+    console.log('Order data:', JSON.stringify(orderData, null, 2));
+    
     const response = await axios.post(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, orderData, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' }
     });
+    
+    console.log('✅ Pesapal response:', response.data);
     res.json({ redirect_url: response.data.RedirectURL });
   } catch (err) {
+    console.log('❌ PESAPAL ERROR:', err.message);
+    console.log('❌ Error details:', err.response?.data);
+    console.log('❌ Error status:', err.response?.status);
     res.status(500).json({ 
       error: 'Pesapal failed', 
       details: err.response?.data || err.message,

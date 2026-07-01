@@ -497,7 +497,7 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
       amount: 2500.00,
       description: 'Laptop Tracker Subscription - 4 Months',
       callback_url: 'https://laptop-tracker-2h7l.onrender.com/dashboard',
-      notification_id: '',
+      notification_id: null,
       ordering_reference: 'LAPTOP_' + Date.now(),
       meta_data: [],
       items: [

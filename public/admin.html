@@ -154,8 +154,9 @@
           document.getElementById('userCount').textContent = data.length;
           let html = '<table><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody>';
           data.forEach(u => {
-            let statusClass = u.subscription.status === 'active' ? 'badge-active' : (u.subscription.status === 'trial' ? 'badge-trial' : 'badge-expired');
-            html += `<tr><td>${u.name}</td><td>${u.email}</td><td><span class="badge ${statusClass}">${u.subscription.status.toUpperCase()}</span></td></tr>`;
+            let statusClass = u.isSubscribed ? 'badge-active' : 'badge-expired';
+            let statusText = u.isSubscribed ? 'ACTIVE' : 'EXPIRED';
+            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td></tr>`;
           });
           html += '</tbody></table>';
           document.getElementById('usersList').innerHTML = html;

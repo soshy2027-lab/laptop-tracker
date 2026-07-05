@@ -321,7 +321,7 @@ app.get('/api/admin/users', protect, async (req, res) => {
 });
 app.get('/api/admin/laptops', protect, async (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
-  const laptops = await Laptop.find();
+  const laptops = await Laptop.find().populate('user', 'name');
   res.json(laptops);
 });
 app.delete('/api/admin/laptops/:id', protect, async (req, res) => {

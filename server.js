@@ -335,6 +335,13 @@ app.get('/api/admin/stolen', protect, async (req, res) => {
   res.json(laptops);
 });
 
+app.get('/api/admin/user/:id', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  const user = await User.findById(req.params.id).select('name email');
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json(user);
+});
+
 
 // Contact Form Route
 app.post('/api/contact', async (req, res) => {

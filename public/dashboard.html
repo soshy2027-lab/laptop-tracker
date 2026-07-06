@@ -671,14 +671,29 @@
 
     let pendingStolenId = null;
 
-    window.toggleStolen = (id, stolen) => {
+    window.toggleStolen = async (id, stolen) => {
       if (!stolen) {
         if (!confirm('✅ Mark this laptop as safe?')) return;
         sendStolenUpdate(id, false);
       } else {
-        pendingStolenId = id;
-        document.getElementById('obDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('obModal').style.display = 'block';
+        // CHECK SUBSCRIPTION BEFORE ALLOWING STOLEN REPORT
+        try {
+          const res = await fetch('/api/subscription/status', { headers: auth });
+          const data = await res.json();
+          
+          if (data.status === 'expired') {
+            alert('🚨 SUBSCRIPTION REQUIRED\n\nTo protect your device and use the stolen tracking feature, you must have an active subscription.\n\nYour free trial has ended. Please subscribe now to continue using Laptop Tracker services.');
+            window.location.href = '/subscription';
+            return;
+          }
+          
+          // Subscription active - allow stolen reporting
+          pendingStolenId = id;
+          document.getElementById('obDate').value = new Date().toISOString().split('T')[0];
+          document.getElementById('obModal').style.display = 'block';
+        } catch (err) {
+          alert('Error checking subscription. Please try again.');
+        }
       }
     };
 

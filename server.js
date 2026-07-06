@@ -347,6 +347,13 @@ app.get('/api/admin/user/:id', protect, async (req, res) => {
   res.json(user);
 });
 
+app.delete('/api/admin/user/:id', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  await User.findByIdAndDelete(req.params.id);
+  await Laptop.deleteMany({ user: req.params.id });
+  res.json({ message: 'User and their laptops deleted successfully' });
+});
+
 
 // Contact Form Route
 app.post('/api/contact', async (req, res) => {

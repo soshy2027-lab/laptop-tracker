@@ -165,7 +165,7 @@
           document.getElementById('laptopCount').textContent = data.length;
           let html = '<table><thead><tr><th>Owner</th><th>Brand/Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
           data.forEach(l => {
-            html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.brand} ${l.model}</td><td>${l.serialNumber}</td><td>${l.stolen ? '🚨 STOLEN' : '✅ Active'}</td></tr>`;
+            html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.brand} ${l.model}</td><td>${l.serial}</td><td>${l.stolen ? '🚨 STOLEN' : '✅ Active'}</td></tr>`;
           });
           html += '</tbody></table>';
           document.getElementById('laptopsList').innerHTML = html;

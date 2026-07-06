@@ -321,8 +321,13 @@ app.get('/api/admin/users', protect, async (req, res) => {
 });
 app.get('/api/admin/laptops', protect, async (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
-  const laptops = await Laptop.find().populate('user', 'name');
-  res.json(laptops);
+  const laptops = await Laptop.find();
+  const userIds = [...new Set(laptops.map(l => l.user).filter(Boolean))];
+  const users = await User.find({ _id: { $in: userIds } }).select('name');
+  const userMap = {};
+  users.forEach(u => { userMap[String(u._id)] = u.name; });
+  const result = laptops.map(l => ({ ...l.toObject(), ownerName: userMap[String(l.user)] || 'Unknown' }));
+  res.json(result);
 });
 app.delete('/api/admin/laptops/:id', protect, async (req, res) => {
   if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });

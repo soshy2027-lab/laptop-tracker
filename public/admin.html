@@ -156,7 +156,7 @@
           data.forEach(u => {
             let statusClass = u.isSubscribed ? 'badge-active' : 'badge-expired';
             let statusText = u.isSubscribed ? 'ACTIVE' : 'EXPIRED';
-            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td></tr>`;
+            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><button onclick="deleteUser('${u._id}', '${u.name}')" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">Delete</button></td></tr>`;
           });
           html += '</tbody></table>';
           document.getElementById('usersList').innerHTML = html;
@@ -209,6 +209,23 @@
         loadData('users');
       }
     })();
-  </script>
+  
+    window.deleteUser = (userId, userName) => {
+      if (!confirm(`⚠️ Are you sure you want to delete user "${userName}"?\n\nThis will also delete all their laptops. This action cannot be undone!`)) return;
+      
+      fetch('/api/admin/user/' + userId, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert('✅ ' + data.message);
+        loadData('users');
+      })
+      .catch(err => {
+        alert('❌ Error deleting user: ' + err.message);
+      });
+    };
+</script>
 </body>
 </html>

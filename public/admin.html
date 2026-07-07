@@ -87,7 +87,7 @@
 
     <div class="tabs">
       <button class="tab active" onclick="switchTab('users')">👥 Users</button>
-      <button class="tab" onclick="switchTab('laptops')">💻 Laptops</button>
+      <button class="tab" onclick="switchTab('laptops')">📱 Devices</button>
       <button class="tab" onclick="switchTab('stolen')">🚨 Stolen</button>
     </div>
 
@@ -163,7 +163,7 @@
         } 
         else if (type === 'laptops') {
           document.getElementById('laptopCount').textContent = data.length;
-          let html = '<table><thead><tr><th>Owner</th><th>Brand/Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
+          let html = '<table><thead><tr><th>Type</th><th>Owner</th><th>Brand/Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
           data.forEach(l => {
             html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.brand} ${l.model}</td><td>${l.serial}</td><td>${l.stolen ? '🚨 STOLEN' : '✅ Active'}</td></tr>`;
           });

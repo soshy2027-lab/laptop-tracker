@@ -467,7 +467,7 @@
         const userRes = await fetch('/api/admin/users', { headers: auth });
         if (userRes.ok) return; // Is Admin
         
-        if(data.status === 'expired') showExpiredPopup();
+        if(data.status === 'expired' || data.isSubscribed === false) showExpiredPopup();
       } catch(e) {}
     })();
 

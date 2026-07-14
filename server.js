@@ -549,3 +549,50 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
   }
 });
 // --- END PESAPAL ---
+
+// --- EMAIL REMINDERS ENDPOINT ---
+app.post('/api/admin/send-reminders', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  
+  try {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    
+    // Find users whose trial ended more than 2 days ago and haven't subscribed
+    const expiredUsers = await User.find({
+      isSubscribed: false,
+      subscriptionExpiryDate: { $lte: twoDaysAgo },
+      email: { $ne: process.env.ADMIN_EMAIL }
+    });
+    
+    let sentCount = 0;
+    for (const user of expiredUsers) {
+      try {
+        await resend.emails.send({
+          from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+          to: user.email,
+          subject: '⚠️ Your Laptop Tracker Trial Has Expired',
+          html: `
+            <h2>Hello ${user.name || 'User'},</h2>
+            <p>Your 21-day free trial for <strong>Laptop Tracker</strong> has ended.</p>
+            <p style="background: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+              <strong>⚠️ Important:</strong> Without an active subscription, you cannot track stolen devices or access premium features.
+            </p>
+            <p>Don't leave your device unprotected! Subscribe now to continue protecting your laptop and phone.</p>
+            <a href="${process.env.APP_URL || 'https://laptop-tracker-2h7l.onrender.com'}/subscription" 
+               style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 10px 0;">
+              Subscribe Now
+            </a>
+          `
+        });
+        sentCount++;
+      } catch (err) {
+        console.error(`Failed to send to ${user.email}:`, err.message);
+      }
+    }
+    
+    res.json({ message: `✅ Sent ${sentCount} reminder emails successfully.` });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to send reminders' });
+  }
+});

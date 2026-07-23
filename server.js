@@ -510,6 +510,17 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
     const token = await getPesapalToken();
     console.log('✅ Got Pesapal token');
     const orderData = {
+      billing_address: {
+        email_address: req.user.email || 'user@example.com',
+        phone_number: req.user.phone || '+254700000000',
+        country_code: 'KE',
+        first_name: req.user.name ? req.user.name.split(' ')[0] : 'User',
+        last_name: req.user.name ? req.user.name.split(' ').slice(1).join(' ') : 'Name',
+        line_1: 'Nairobi',
+        city: 'Nairobi',
+        state: 'Nairobi',
+        postal_code: '00100'
+      },
       id: 'LAPTOP_' + Date.now(),
       type: 'MERCHANT',
       currency: 'KES',

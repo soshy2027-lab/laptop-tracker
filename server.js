@@ -509,7 +509,14 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
     
     const token = await getPesapalToken();
     console.log('✅ Got Pesapal token');
-    const orderData = {
+        const orderData = {
+      id: 'LAPTOP_' + Date.now(),
+      type: 'MERCHANT',
+      currency: 'KES',
+      amount: 2500.00,
+      description: 'Laptop Tracker Subscription - 4 Months',
+      callback_url: 'https://laptop-tracker-2h7l.onrender.com/dashboard',
+      ordering_reference: 'LAPTOP_' + Date.now(),
       billing_address: {
         email_address: req.user.email || 'user@example.com',
         phone_number: req.user.phone || '+254700000000',
@@ -521,12 +528,6 @@ app.post('/api/pesapal/submit-order', protect, async (req, res) => {
         state: 'Nairobi',
         postal_code: '00100'
       },
-      id: 'LAPTOP_' + Date.now(),
-      type: 'MERCHANT',
-      currency: 'KES',
-      amount: 2500.00,
-      description: 'Laptop Tracker Subscription - 4 Months',
-      callback_url: 'https://laptop-tracker-2h7l.onrender.com/dashboard',      ordering_reference: 'LAPTOP_' + Date.now(),
       meta_data: [],
       items: [
         {

@@ -43,7 +43,7 @@ const pendingPayments = new Map();
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
-const PAYPAL_BASE_URL = process.env.PAYPAL_BASE_URL || 'https://api-m.sandbox.paypal.com';
+const PAYPAL_BASE_URL = process.env.PAYPAL_BASE_URL || 'https://api-m.paypal.com';
 const PAYPAL_CURRENCY = process.env.PAYPAL_CURRENCY || 'USD';
 
 const userSchema = new mongoose.Schema({

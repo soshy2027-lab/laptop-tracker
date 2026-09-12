@@ -187,7 +187,7 @@ app.post('/api/paypal/create-order', protect, async (req, res) => {
     const order = { intent: 'CAPTURE', purchase_units: [{ amount: { currency_code: PAYPAL_CURRENCY, value: '20.00' } }] };
     const response = await axios.post(PAYPAL_BASE_URL + '/v2/checkout/orders', order, { headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } });
     res.json({ id: response.data.id });
-  } catch (err) { res.status(500).json({ error: 'Failed to create PayPal order' }); }
+  } catch (err) { console.error('PAYPAL ERROR:', err.response?.data || err.message); res.status(500).json({ error: 'Failed to create PayPal order', details: err.response?.data || err.message }); }
 });
 
 app.post('/api/paypal/capture-order', protect, async (req, res) => {

@@ -354,6 +354,25 @@ app.delete('/api/admin/user/:id', protect, async (req, res) => {
   res.json({ message: 'User and their laptops deleted successfully' });
 });
 
+app.put('/api/admin/user/:id/activate', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  try {
+    // Give the user 120 days (4 months) of subscription
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 120);
+    
+    await User.findByIdAndUpdate(req.params.id, {
+      isSubscribed: true,
+      subscriptionExpiryDate: expiryDate
+    });
+    res.json({ message: 'User activated successfully for 4 months' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to activate user' });
+  }
+});
+
+
+
 
 // Contact Form Route
 app.post('/api/contact', async (req, res) => {

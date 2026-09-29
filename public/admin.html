@@ -74,6 +74,45 @@
     .badge-expired { background: #fee2e2; color: #991b1b; }
     .badge-trial { background: #fef3c7; color: #92400e; }
     .loading { text-align: center; padding: 40px; color: #6b7280; }
+  
+    /* Admin Table Styling */
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .admin-table th, .admin-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 0.9rem;
+    }
+    .admin-table th {
+      background-color: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+    }
+    .admin-table tr:hover {
+      background-color: #f9fafb;
+    }
+    .badge-stolen {
+      background-color: #fee2e2;
+      color: #dc2626;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    /* Make table scrollable on mobile phones */
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
   </style>
 </head>
 <body>
@@ -180,9 +219,10 @@
         } 
         else if (type === 'laptops') {
           document.getElementById('laptopCount').textContent = data.length;
-          let html = '<table><thead><tr><th>Type</th><th>Owner</th><th>Brand/Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
+          let html = '<table class="admin-table"><thead><tr><th>Owner</th><th>Type</th><th>Brand/Model</th><th>Serial</th><th>Status</th></tr></thead><tbody>';
           data.forEach(l => {
-            html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.brand} ${l.model}</td><td>${l.serial}</td><td>${l.stolen ? '🚨 STOLEN' : '✅ Active'}</td></tr>`;
+            let statusBadge = l.stolen ? '<span class="badge badge-stolen">🚨 STOLEN</span>' : '<span class="badge badge-active">✅ Active</span>';
+            html += `<tr><td>${l.ownerName || 'Unknown'}</td><td>${l.type || 'Laptop'}</td><td>${l.brand} ${l.model}</td><td>${l.serial}</td><td>${statusBadge}</td></tr>`;
           });
           html += '</tbody></table>';
           document.getElementById('laptopsList').innerHTML = html;

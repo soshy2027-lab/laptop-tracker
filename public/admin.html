@@ -208,11 +208,12 @@
         
         if (type === 'users') {
           document.getElementById('userCount').textContent = data.length;
-          let html = '<table><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody>';
+          let html = '<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
           data.forEach(u => {
             let statusClass = u.isSubscribed ? 'badge-active' : 'badge-expired';
             let statusText = u.isSubscribed ? 'ACTIVE' : 'EXPIRED';
-            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><button onclick="deleteUser('${u._id}', '${u.name}')" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">Delete</button></td></tr>`;
+            let activateBtn = u.isSubscribed ? '' : `<button onclick="activateUser('${u._id}', '${u.name}')" style="background:#16a34a;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;margin-right:5px;">Activate</button>`;
+            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td>${activateBtn}<button onclick="deleteUser('${u._id}', '${u.name}')" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">Delete</button></td></tr>`;
           });
           html += '</tbody></table>';
           document.getElementById('usersList').innerHTML = html;
@@ -267,6 +268,26 @@
       }
     })();
   
+    window.activateUser = async (userId, userName) => {
+      if (!confirm(`✅ Are you sure you want to activate "${userName}" for 4 months (120 days)?\n\nOnly do this if you have confirmed their M-Pesa payment!`)) return;
+
+      try {
+        const res = await fetch('/api/admin/user/' + userId + '/activate', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('✅ User activated successfully!');
+          loadData('users'); // Refresh the list
+        } else {
+          alert('❌ Error: ' + (data.error || 'Failed to activate'));
+        }
+      } catch (err) {
+        alert('❌ Network error');
+      }
+    };
+
     window.deleteUser = (userId, userName) => {
       if (!confirm(`⚠️ Are you sure you want to delete user "${userName}"?\n\nThis will also delete all their laptops. This action cannot be undone!`)) return;
       

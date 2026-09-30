@@ -208,12 +208,33 @@
         
         if (type === 'users') {
           document.getElementById('userCount').textContent = data.length;
-          let html = '<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+          let html = '<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Days Left</th><th>Actions</th></tr></thead><tbody>';
           data.forEach(u => {
             let statusClass = u.isSubscribed ? 'badge-active' : 'badge-expired';
             let statusText = u.isSubscribed ? 'ACTIVE' : 'EXPIRED';
             let activateBtn = u.isSubscribed ? '' : `<button onclick="activateUser('${u._id}', '${u.name}')" style="background:#16a34a;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;margin-right:5px;">Activate</button>`;
-            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td>${activateBtn}<button onclick="deleteUser('${u._id}', '${u.name}')" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">Delete</button></td></tr>`;
+            
+            // Calculate remaining days for the user
+            let daysText = 'No Plan';
+            let daysClass = 'badge-expired';
+            if (u.subscriptionExpiryDate) {
+              const expiry = new Date(u.subscriptionExpiryDate);
+              const today = new Date();
+              const diffTime = expiry - today;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (diffDays < 0) {
+                daysText = 'Expired';
+                daysClass = 'badge-expired';
+              } else if (diffDays <= 7) {
+                daysText = diffDays + ' days';
+                daysClass = 'badge-warning';
+              } else {
+                daysText = diffDays + ' days';
+                daysClass = 'badge-active';
+              }
+            }
+
+            html += `<tr><td>${u.name || 'No Name'}</td><td>${u.email || 'No Email'}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><span class="badge ${daysClass}">${daysText}</span></td><td>${activateBtn}<button onclick="deleteUser('${u._id}', '${u.name}')" style="background:#dc2626;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">Delete</button></td></tr>`;
           });
           html += '</tbody></table>';
           document.getElementById('usersList').innerHTML = html;

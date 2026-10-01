@@ -584,7 +584,7 @@
         loadData();
         // Automatically open tracker page with ID filled in
         window.open('/tracker.html?id=' + newDevice._id, '_blank');
-      } else alert('Failed to add laptop');
+      } else { const errData = await res.json().catch(() => ({})); alert('Failed: ' + (errData.error || 'Status: ' + res.status)); }
     };
 
     window.deleteItem = async(id) => {

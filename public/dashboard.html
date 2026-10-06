@@ -222,13 +222,20 @@
 </head>
 
 <div id="hamburger-btn">☰</div>
+
+<div style="text-align: center; margin: 15px 0; padding: 10px;">
+  <button id="installBtn" onclick="installApp()" style="background-color: #28a745; color: white; border: none; padding: 14px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 90%; max-width: 350px;">
+    📱 Install App for Easy Access
+  </button>
+</div>
+
 <div id="dropdown-menu">
   <button onclick="openVideo()">Watch</button>
   <button onclick="window.location.href='/subscription'">Subscribe</button>
   <button onclick="toggleTheme()">Mode</button>
   <button onclick="window.location.href='/contact.html'">Contact Us</button>
   <button onclick="window.location.href='/profile'">Profile</button>
-  <button id="installBtn" onclick="installApp()">📱 Install App</button>
+  
   <button onclick="window.location.href='/dashboard'">Homepage</button>
   <button onclick="logout()">Logout</button>
 </div>

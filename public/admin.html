@@ -127,7 +127,7 @@
   async function sendReminders() {
     if (!confirm('Send email reminders to all users with expired trials?')) return;
     try {
-      const res = await fetch('/api/admin/send-reminders', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') } });
+      const res = await fetch('/api/admin/send-reminders', { method: 'POST', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') } });
       const data = await res.json();
       alert(data.message || 'Reminders sent!');
     } catch (err) { alert('Error sending reminders'); }

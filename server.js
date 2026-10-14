@@ -624,6 +624,7 @@ app.post('/api/admin/send-reminders', protect, async (req, res) => {
     
     res.json({ message: `✅ Sent ${sentCount} reminder emails successfully.` });
   } catch (err) {
+        console.error('REMINDER ERROR DETAILS:', err);
     res.status(500).json({ error: 'Failed to send reminders' });
   }
 });

@@ -140,6 +140,8 @@
 
 </head>
 <body>
+
+
   <!-- LOADER -->
   <div id="loader"><div class="spinner"></div></div>
 
@@ -256,22 +258,9 @@
 </script>
 
       <div class="divider"><span>OR</span></div>
-      <div id="google_btn_container" style="display: flex; justify-content: center; margin-top: 10px;"></div>
-<script>
-  window.onload = function() {
-    try {
-      google.accounts.id.initialize({
-        client_id: "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com",
-        callback: handleGoogleCredentialResponse,
-        ux_mode: "popup"
-      });
-      google.accounts.id.renderButton(
-        document.getElementById("google_btn_container"),
-        { theme: "outline", size: "large", shape: "rectangular", text: "signin_with", logo_alignment: "left" }
-      );
-    } catch(e) { console.log("Google init error", e); }
-  };
-</script>
+      
+
+
     </div>
 
     <!-- REGISTER FORM -->
@@ -412,14 +401,7 @@
       } catch (err) { showError("Network error"); }
     }
 
-    window.handleGoogleCredentialResponse = async function(response) {
-      try {
-        const res = await fetch('/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
-        const data = await res.json();
-        if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
-        else showError("Google login failed");
-      } catch (err) { showError("Network error"); }
-    }
+    
   </script>
 
 
@@ -435,5 +417,65 @@
     });
   }
 </script>
+
+<script>
+  // 1. Handle redirect callback if Google sent us back with a credential
+  if (window.location.hash && (window.location.hash.includes('credential=') || window.location.hash.includes('id_token='))) {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const credential = params.get('credential') || params.get('id_token');
+    
+    if (credential) {
+      // Clear the URL immediately so refreshing doesn't re-login
+      window.history.replaceState(null, null, window.location.pathname);
+      
+      // Send to backend
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credential })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          window.location.href = '/dashboard';
+        } else {
+          alert('Google login failed: ' + (data.error || 'Unknown error'));
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Network error during Google login');
+      });
+    }
+  }
+
+  // 2. Initialize Google button for new logins using REDIRECT mode (most reliable for mobile)
+  window.onload = function() {
+    if (typeof google !== 'undefined' && google.accounts) {
+      google.accounts.id.initialize({
+        client_id: "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com",
+        ux_mode: "redirect",
+        redirect_uri: "https://laptop-tracker-2h7l.onrender.com"
+      });
+      
+      // Find the divider and insert the button right after it
+      const divider = document.querySelector('.divider');
+      if (divider && !document.getElementById('google_btn_container')) {
+        const container = document.createElement('div');
+        container.id = "google_btn_container";
+        container.style.cssText = "display: flex; justify-content: center; margin-top10px;";
+        divider.parentNode.insertBefore(container, divider.nextSibling);
+        
+        google.accounts.id.renderButton(
+          container,
+          { theme: "outline", size: "large", shape: "rectangular", text: "signin_with", logo_alignment: "left" }
+        );
+      }
+    }
+  };
+</script>
+
 </body>
 </html>

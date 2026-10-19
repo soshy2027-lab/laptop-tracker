@@ -194,285 +194,44 @@
         <p id="reset-msg" style="margin-top: 10px; font-size: 14px;"></p>
     </div>
 </div>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const resetToken = urlParams.get('token');
-
-  if (resetToken) {
-    document.getElementById('reset-form').style.display = 'block';
-    document.getElementById('show-forgot-btn').style.display = 'none';
-  } else {
-    if(!localStorage.getItem('token')) {
-       document.getElementById('show-forgot-btn').style.display = 'inline-block';
-    }
-  }
-
-  document.getElementById('show-forgot-btn').addEventListener('click', () => {
-    document.getElementById('forgot-form').style.display = 'block';
-    document.getElementById('show-forgot-btn').style.display = 'none';
-  });
-
-  function showLogin() {
-    document.getElementById('forgot-form').style.display = 'none';
-    document.getElementById('show-forgot-btn').style.display = 'inline-block';
-  }
-
-  async function handleForgot() {
-    const email = document.getElementById('forgot-email').value;
-    const msg = document.getElementById('forgot-msg');
-    msg.innerText = 'Sending...';
-    try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      msg.innerText = data.message || data.error;
-      msg.style.color = res.ok ? 'green' : 'red';
-    } catch (e) {
-      msg.innerText = 'Network error';
-      msg.style.color = 'red';
-    }
-  }
-
-  async function handleReset() {
-    const newPassword = document.getElementById('new-password').value;
-    const msg = document.getElementById('reset-msg');
-    msg.innerText = 'Updating...';
-    try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: resetToken, newPassword })
-      });
-      const data = await res.json();
-      msg.innerText = data.message || data.error;
-      msg.style.color = res.ok ? 'green' : 'red';
-      if(res.ok) setTimeout(() => window.location.href = '/', 2000);
-    } catch (e) {
-      msg.innerText = 'Network error';
-      msg.style.color = 'red';
-    }
-  }
-</script>
-
-      <div class="divider"><span>OR</span></div>
-      
-
-
-    </div>
-
-    <!-- REGISTER FORM -->
-    <div id="registerForm" class="hidden">
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" id="regName" placeholder="John Doe">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="regEmail" placeholder="you@example.com">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="regPass" placeholder="••••••••" oninput="checkStrength()">
-        <button type="button" class="toggle-password" onclick="togglePass('regPass', this)">👁️</button>
-    <input type="tel" id="register-phone" placeholder="Contact (e.g., +254...)" required style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
-    <!-- PASSWORD STRENGTH METER -->
-        <div class="strength-meter"><div id="strength-fill" class="strength-fill"></div></div>
-        <div id="strength-text" class="strength-text"></div>
-      </div>
-      
-      <div style="background: #f0fdf4; border: 2px dashed #16a34a; padding: 15px; border-radius: 8px; margin: 20px 0 15px 0; text-align: center;">
-        <p style="margin: 0; font-weight: bold; color: #15803d; font-size: 18px;">🎉 21 Days FREE Trial! 🎉</p>
-        <p style="margin: 5px 0 0 0; font-size: 14px; color: #4b5563;">Sign up now. No credit card required. Full access!</p>
-      </div>
-      
-      <button class="btn-primary" onclick="handleRegister()">Create Account</button>
-    </div>
-
-      <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
-        © 2026 Laptop Tracker. All rights reserved.
-      </div>
-    <div class="footer-links">
-      <a href="/important.html">Important</a>
-      <a href="/terms.html">Terms</a>
-      <a href="/about.html">About</a>
-    </div>
-  </div>
-
-  <script>
-    // HIDE LOADER
-    window.addEventListener('load', () => {
-      const loader = document.getElementById('loader');
-      loader.style.opacity = '0';
-      setTimeout(() => loader.style.display = 'none', 500);
-    });
-
-    // INSTALL PROMPT LOGIC
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      setTimeout(() => {
-        document.getElementById('install-banner').style.display = 'flex';
-      }, 2000);
-    });
-
-    window.installApp = () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((result) => {
-          if (result.outcome === 'accepted') {
-            document.getElementById('install-banner').style.display = 'none';
-          }
-          deferredPrompt = null;
-        });
-      }
-    };
-
-    // PASSWORD STRENGTH CHECK
-    window.checkStrength = () => {
-      const val = document.getElementById('regPass').value;
-      const fill = document.getElementById('strength-fill');
-      const text = document.getElementById('strength-text');
-      
-      let strength = 0;
-      if (val.length >= 6) strength++;
-      if (val.match(/[a-z]/) && val.match(/[A-Z]/)) strength++;
-      if (val.match(/\d/)) strength++;
-      if (val.match(/[^a-zA-Z\d]/)) strength++;
-
-      const colors = ['#dc2626', '#f59e0b', '#10b981', '#059669'];
-      const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-      
-      fill.style.width = (strength * 25) + '%';
-      fill.style.background = colors[strength - 1] || '#e5e7eb';
-      text.textContent = val.length > 0 ? labels[strength - 1] || 'Too Short' : '';
-      text.style.color = colors[strength - 1] || '#6b7280';
-    };
-
-    window.togglePass = (id, btn) => {
-      const input = document.getElementById(id);
-      if (input.type === "password") { input.type = "text"; btn.textContent = "🙈"; }
-      else { input.type = "password"; btn.textContent = "👁️"; }
-    };
-
-    window.switchTab = (tab) => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
-      document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
-      document.getElementById('errorBox').classList.add('hidden');
-    };
-
-    function showError(msg) {
-      const box = document.getElementById('errorBox');
-      box.textContent = msg; box.classList.remove('hidden');
-    }
-
-    async function handleLogin() {
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPass').value;
-      if (!email || !password) return showError("Please fill in all fields");
-      try {
-        const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-        const data = await res.json();
-        if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
-        else showError(data.error);
-      } catch (err) { showError("Network error"); }
-    }
-
-    async function handleRegister() {
-      const name = document.getElementById('regName').value;
-      const email = document.getElementById('regEmail').value;
-      const password = document.getElementById('regPass').value;
-      if (!name || !email || !password) return showError("Please fill in all fields");
-      try {
-        const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) });
-        const data = await res.json();
-        if (res.ok) { 
-          localStorage.setItem('token', data.token); 
-          // SHOW ALERT INSTRUCTING USER TO CHECK EMAIL
-          alert(`✅ Account created successfully!\n\n Please check your email (${email}) to verify your account.`);
-          window.location.href = '/dashboard'; 
-        }
-        else showError(data.error);
-      } catch (err) { showError("Network error"); }
-    }
-
-    
-  </script>
-
 
 
 
 <script>
-  // Register Service Worker for PWA Install Prompt
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('SW registered'))
-        .catch(err => console.log('SW error:', err));
-    });
-  }
-</script>
-
-<script>
-  // 1. Handle redirect callback if Google sent us back with a credential
-  if (window.location.hash && (window.location.hash.includes('credential=') || window.location.hash.includes('id_token='))) {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
+  // 1. Check if Google redirected back with a token
+  const hash = window.location.hash;
+  if (hash && (hash.includes('credential=') || hash.includes('id_token='))) {
+    const params = new URLSearchParams(hash.substring(1));
     const credential = params.get('credential') || params.get('id_token');
-    
     if (credential) {
-      // Clear the URL immediately so refreshing doesn't re-login
-      window.history.replaceState(null, null, window.location.pathname);
-      
-      // Send to backend
+      window.history.replaceState(null, null, window.location.pathname); // Clean URL
       fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: credential })
-      })
-      .then(res => res.json())
-      .then(data => {
+      }).then(res => res.json()).then(data => {
         if (data.token) {
           localStorage.setItem('token', data.token);
           window.location.href = '/dashboard';
         } else {
-          alert('Google login failed: ' + (data.error || 'Unknown error'));
+          alert('Login failed');
         }
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Network error during Google login');
       });
     }
   }
 
-  // 2. Initialize Google button for new logins using REDIRECT mode (most reliable for mobile)
+  // 2. Initialize Google Login
   window.onload = function() {
-    if (typeof google !== 'undefined' && google.accounts) {
+    if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
         client_id: "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com",
         ux_mode: "redirect",
         redirect_uri: "https://laptop-tracker-2h7l.onrender.com"
       });
-      
-      // Find the divider and insert the button right after it
-      const divider = document.querySelector('.divider');
-      if (divider && !document.getElementById('google_btn_container')) {
-        const container = document.createElement('div');
-        container.id = "google_btn_container";
-        container.style.cssText = "display: flex; justify-content: center; margin-top10px;";
-        divider.parentNode.insertBefore(container, divider.nextSibling);
-        
-        google.accounts.id.renderButton(
-          container,
-          { theme: "outline", size: "large", shape: "rectangular", text: "signin_with", logo_alignment: "left" }
-        );
-      }
+      const container = document.getElementById('google_btn_container') || document.createElement('div');
+      container.id = 'google_btn_container';
+      document.querySelector('.divider').parentNode.insertBefore(container, document.querySelector('.divider').nextSibling);
+      google.accounts.id.renderButton(container, { theme: "outline", size: "large", shape: "rectangular", text: "signin_with" });
     }
   };
 </script>

@@ -197,43 +197,18 @@
 
 
 
-<script>
-  // 1. Check if Google redirected back with a token
-  const hash = window.location.hash;
-  if (hash && (hash.includes('credential=') || hash.includes('id_token='))) {
-    const params = new URLSearchParams(hash.substring(1));
-    const credential = params.get('credential') || params.get('id_token');
-    if (credential) {
-      window.history.replaceState(null, null, window.location.pathname); // Clean URL
-      fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: credential })
-      }).then(res => res.json()).then(data => {
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          window.location.href = '/dashboard';
-        } else {
-          alert('Login failed');
-        }
-      });
-    }
-  }
 
-  // 2. Initialize Google Login
-  window.onload = function() {
-    if (typeof google !== 'undefined') {
-      google.accounts.id.initialize({
-        client_id: "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com",
-        ux_mode: "redirect",
-        redirect_uri: "https://laptop-tracker-2h7l.onrender.com"
-      });
-      const container = document.getElementById('google_btn_container') || document.createElement('div');
-      container.id = 'google_btn_container';
-      document.querySelector('.divider').parentNode.insertBefore(container, document.querySelector('.divider').nextSibling);
-      google.accounts.id.renderButton(container, { theme: "outline", size: "large", shape: "rectangular", text: "signin_with" });
-    }
-  };
+
+
+<script>
+  window.handleGoogleCredentialResponse = async function(response) {
+    try {
+      const res = await fetch('/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
+      const data = await res.json();
+      if (res.ok) { localStorage.setItem('token', data.token); window.location.href = '/dashboard'; }
+      else showError("Google login failed");
+    } catch (err) { showError("Network error"); }
+  }
 </script>
 
 </body>

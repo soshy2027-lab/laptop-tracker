@@ -256,8 +256,22 @@
 </script>
 
       <div class="divider"><span>OR</span></div>
-      <div id="g_id_onload" data-client_id="725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com" data-callback="handleGoogleCredentialResponse" data-ux_mode="popup" data-login_uri="" data-auto_prompt="false"></div>
-      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left" data-ux_mode="popup"></div>
+      <div id="google_btn_container" style="display: flex; justify-content: center; margin-top: 10px;"></div>
+<script>
+  window.onload = function() {
+    try {
+      google.accounts.id.initialize({
+        client_id: "725032797775-iam91nooik7abniqg41hjejso90f2asr.apps.googleusercontent.com",
+        callback: handleGoogleCredentialResponse,
+        ux_mode: "popup"
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("google_btn_container"),
+        { theme: "outline", size: "large", shape: "rectangular", text: "signin_with", logo_alignment: "left" }
+      );
+    } catch(e) { console.log("Google init error", e); }
+  };
+</script>
     </div>
 
     <!-- REGISTER FORM -->

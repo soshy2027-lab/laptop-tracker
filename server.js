@@ -148,8 +148,10 @@ app.post('/api/auth/google', async (req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  let { email, password } = req.body;
+  if (email) email = email.trim();
+  if (password) password = password.trim();
+  const user = await User.findOne({ email: { $regex: new RegExp('^' + email + '$', 'i') } });
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
   if (!await bcrypt.compare(password, user.password)) return res.status(400).json({ error: 'Invalid credentials' });
   const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });

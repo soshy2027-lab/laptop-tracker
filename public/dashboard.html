@@ -393,6 +393,10 @@
           <input type="text" id="model" placeholder="Model (e.g. Pavilion)" required>
           <input type="text" id="serial" placeholder="Serial Number" required>
           <input type="text" id="ram" placeholder="RAM (e.g. 8GB)" required>
+          
+          <input type="text" id="imei" placeholder="IMEI Number (Phone only)" class="full phone-input" style="display:none;">
+          <input type="text" id="address" placeholder="Address/Phone Number (Phone only)" class="full phone-input" style="display:none;">
+
           <input type="text" id="storage" placeholder="Storage (e.g. 256GB)" required>
           <select id="status"><option>Active</option><option>In Repair</option><option>Retired</option></select>
           <input type="text" id="notes" placeholder="Notes (optional)" class="full">
@@ -417,7 +421,7 @@
               <th>Model</th>
               <th>RAM</th>
               <th>Storage</th>
-              <th>Serial</th>
+              <th>Serial</th><th class='phone-col' style='display:none;'>IMEI</th><th class='phone-col' style='display:none;'>Address</th>
               <th>Status</th>
               <th>Last Seen</th>
               <th>Location</th>
@@ -572,7 +576,9 @@
         model: document.getElementById('model').value, 
         serial: document.getElementById('serial').value, 
         ram: document.getElementById('ram').value, 
-        storage: document.getElementById('storage').value, 
+        storage: document.getElementById('storage').value,
+        imei: document.getElementById('imei').value,
+        address: document.getElementById('address').value, 
         status: document.getElementById('status').value, 
         notes: document.getElementById('notes').value 
       };
@@ -981,3 +987,17 @@ window.generatePoliceReport = function(id) {
 
 </body>
 </html>
+
+<script>
+
+    // Show/Hide Phone Fields
+    const typeSelect = document.getElementById('deviceType');
+    const phoneInputs = document.querySelectorAll('.phone-input');
+    typeSelect.addEventListener('change', function() {
+      const isPhone = this.value === 'Phone';
+      phoneInputs.forEach(input => input.style.display = isPhone ? 'block' : 'none');
+      // Also toggle table columns
+      document.querySelectorAll('.phone-col').forEach(el => el.style.display = isPhone ? '' : 'none');
+    });
+
+</script>

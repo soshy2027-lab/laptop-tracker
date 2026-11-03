@@ -407,9 +407,9 @@
     </div>
 
     <div class="card">
-      <h2>My Laptops</h2>
+      <h2>My Devices</h2>
       <div class="search-row">
-        <input type="text" class="search" id="searchBox" placeholder="🔍 Search laptops..." onkeyup="filterTable()">
+        <input type="text" class="search" id="searchBox" placeholder="🔍 Search devices..." onkeyup="filterTable()">
         <button onclick="exportCSV()" class="btn btn-export"> Export CSV</button>
       </div>
       <div style="overflow-x:auto;">
@@ -527,7 +527,7 @@
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
       if(laptops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--light);">No laptops yet. Add one above!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--light);">No devices yet. Add one above!</td></tr>';
         return;
       }
       laptops.forEach(l => {
@@ -543,7 +543,7 @@
             <td>${l.model||''}</td>
             <td>${l.ram||''}</td>
             <td>${l.storage||''}</td>
-            <td>${l.serial||''}</td>
+            <td>${l.serial||''}</td><td class='phone-col' style='display:none;'>${l.imei||''}</td><td class='phone-col' style='display:none;'>${l.address||''}</td>
             <td style="color:${statusColor};font-weight:bold">${statusText}</td>
             <td>${lastSeen}</td>
             <td>${location}</td>
@@ -1000,4 +1000,17 @@ window.generatePoliceReport = function(id) {
       document.querySelectorAll('.phone-col').forEach(el => el.style.display = isPhone ? '' : 'none');
     });
 
+</script>
+
+<script>
+  // Simple toggle for the dropdown
+  const deviceSelect = document.getElementById('deviceType');
+  if(deviceSelect) {
+    deviceSelect.addEventListener('change', function() {
+      const isPhone = this.value === 'Phone';
+      document.querySelectorAll('.phone-col').forEach(el => {
+        el.style.display = isPhone ? 'table-cell' : 'none';
+      });
+    });
+  }
 </script>

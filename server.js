@@ -441,6 +441,18 @@ const sendTrialReminders = async () => {
       if ([21, 18, 1].includes(daysLeft) && !user.trialReminderSent) {
         const subject = daysLeft === 1 ? 'Trial Ends Tomorrow!' : daysLeft + ' Days Left in Trial';
         await resend.emails.send({ from: process.env.FROM_EMAIL || 'onboarding@resend.dev', to: user.email, subject: subject, html: '<p>Hi ' + user.name + ', your trial ends in ' + daysLeft + ' days. Subscribe: https://laptop-tracker-2h7l.onrender.com</p>' });
+
+        // Send SMS Reminder safely if phone number exists
+        if (user.phone) {
+          const smsMessage = 'Hi ' + user.name + ', your Laptop Tracker trial ends in ' + daysLeft + ' days. Subscribe now to keep protecting your devices: https://laptop-tracker-2h7l.onrender.com';
+          await sendSMS(user.phone, smsMessage).catch(err => console.log('SMS reminder skipped:', err.message));
+        }
+
+        // Send SMS Reminder safely if phone number exists
+        if (user.phone) {
+          const smsMessage = 'Hi ' + user.name + ', your Laptop Tracker trial ends in ' + daysLeft + ' days. Subscribe now to keep protecting your devices: https://laptop-tracker-2h7l.onrender.com';
+          await sendSMS(user.phone, smsMessage).catch(err => console.log('SMS reminder skipped:', err.message));
+        }
         user.trialReminderSent = true;
         await user.save();
       }

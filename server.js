@@ -1,4 +1,6 @@
 require('dotenv').config();
+const AfricaTalking = require('africastalking');
+require('dotenv').config();
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const express = require('express');
@@ -157,6 +159,34 @@ app.post('/api/auth/login', async (req, res) => {
   const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, user: { id: user._id, name: user.name, email, role: user.role } });
 });
+
+
+// --- SMS FUNCTION ---
+const at = AfricaTalking({ username: process.env.AT_USERNAME, apiKey: process.env.AT_API_KEY });
+const sms = at.SMS;
+
+async function sendSMS(phoneNumber, message) {
+  try {
+    // Automatically format Kenyan numbers to +254...
+    if (phoneNumber.startsWith('0')) {
+      phoneNumber = '+254' + phoneNumber.substring(1);
+    } else if (!phoneNumber.startsWith('+')) {
+      phoneNumber = '+254' + phoneNumber;
+    }
+    
+    const options = {
+      to: [phoneNumber],
+      message: message,
+      from: "LaptopTracker" 
+    };
+    const result = await sms.send(options);
+    console.log("✅ SMS sent successfully to", phoneNumber);
+    return result;
+  } catch (error) {
+    console.error("❌ SMS Error:", error);
+  }
+}
+// --- END SMS FUNCTION ---
 
 app.get('/api/auth/confirm', async (req, res) => {
   const { token } = req.query;

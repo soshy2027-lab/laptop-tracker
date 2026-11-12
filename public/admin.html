@@ -134,6 +134,32 @@
   }
 </script>
 
+<div style="margin: 20px 0; text-align: center;">
+  <button onclick="sendInspirational()" style="background: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+    💌 Send Inspirational Message (SMS & Email)
+  </button>
+</div>
+<script>
+  async function sendInspirational() {
+    const message = prompt("Enter your inspirational message (e.g., Happy New Month!):");
+    if (!message) return;
+    if (!confirm('Send this message to ALL users via Email and SMS?')) return;
+    try {
+      const res = await fetch('/api/admin/send-inspirational', { 
+        method: 'POST', 
+        headers: { 
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await res.json();
+      alert(data.message || 'Messages sent!');
+    } catch (err) { alert('Error sending messages'); }
+  }
+</script>
+
+
 <div class="header">
       <h1>🔐 Admin Dashboard</h1>
       <button class="btn-logout" onclick="logout()">Logout</button>

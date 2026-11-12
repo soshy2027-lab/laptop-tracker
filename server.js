@@ -672,3 +672,33 @@ app.post('/api/admin/send-reminders', protect, async (req, res) => {
     res.status(500).json({ error: 'Failed to send reminders' });
   }
 });
+
+// --- INSPIRATIONAL MESSAGE ROUTE ---
+app.post('/api/admin/send-inspirational', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  const { message } = req.body;
+  try {
+    const users = await User.find({});
+    let sentCount = 0;
+    for (const user of users) {
+      if (user.email) {
+        await resend.emails.send({
+          from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+          to: user.email,
+          subject: 'A Special Message from Laptop Tracker',
+          html: '<p>Hi ' + (user.name || 'Friend') + ',</p><p>' + message + '</p><p>Best regards,<br>Laptop Tracker Team</p>'
+        }).catch(err => console.log('Email skipped:', err.message));
+      }
+      if (user.phone) {
+        await sendSMS(user.phone, message).catch(err => console.log('SMS skipped:', err.message));
+      }
+      sentCount++;
+    }
+    res.json({ message: '✅ Inspirational message sent to ' + sentCount + ' users successfully.' });
+  } catch (err) {
+    console.error('INSPIRATIONAL MESSAGE ERROR:', err);
+    res.status(500).json({ error: 'Failed to send messages' });
+  }
+});
+// --- END INSPIRATIONAL MESSAGE ROUTE ---
+

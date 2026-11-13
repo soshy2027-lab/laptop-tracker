@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - PDF Approvals</title>
+<style>
+  body { font-family: Arial; background: #0f172a; color: white; padding: 20px; max-width: 600px; margin: auto; }
+  h1 { color: #60a5fa; }
+  .card { background: #1e293b; padding: 15px; border-radius: 10px; margin: 10px 0; }
+  button { background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+  .empty { color: #94a3b8; text-align: center; padding: 30px; }
+</style>
+</head>
+<body>
+<h1>💌 Pending PDF Payments</h1>
+<div id="list"><div class="empty">Loading...</div></div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) { window.location.href = '/'; }
+
+async function load() {
+  const res = await fetch('/api/admin/pending-pdfs', { headers: { 'Authorization': 'Bearer ' + token } });
+  if (!res.ok) { document.getElementById('list').innerHTML = '<div class="empty">Admin access only.</div>'; return; }
+  const users = await res.json();
+  if (!users.length) { document.getElementById('list').innerHTML = '<div class="empty">No pending requests. 🎉</div>'; return; }
+  let html = '';
+  users.forEach(u => {
+    html += `<div class="card">
+      <strong>${u.name}</strong><br>
+      📧 ${u.email}<br>
+      📱 ${u.phone || 'No phone'}<br>
+      🔑 M-Pesa Code: <strong>${u.pendingPdfCode}</strong><br><br>
+      <button onclick="approve('${u._id}')">✅ Verify 500 KES & Approve</button>
+    </div>`;
+  });
+  document.getElementById('list').innerHTML = html;
+}
+
+async function approve(userId) {
+  if (!confirm('Did you receive 500 KES from this user?')) return;
+  await fetch('/api/admin/approve-pdf', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: userId })
+  });
+  alert('✅ Approved!');
+  load();
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Recovery PDF - Laptop Tracker</title>
+<style>
+  body { font-family: Arial; background: #0f172a; color: white; padding: 20px; max-width: 500px; margin: auto; }
+  .card { background: #1e293b; padding: 25px; border-radius: 12px; margin-top: 20px; }
+  h2 { color: #60a5fa; }
+  button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+  .green { background: #10b981; color: white; }
+  .blue { background: #3b82f6; color: white; }
+  input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
+  .hidden { display: none; }
+  .status { padding: 12px; border-radius: 8px; margin: 10px 0; text-align: center; }
+  .success { background: #065f46; color: #a7f3d0; }
+  .info { background: #1e40af; color: #bfdbfe; }
+</style>
+</head>
+<body>
+<h1>📜 Legal Recovery PDF</h1>
+<div class="card">
+  <div id="loading">Checking your status...</div>
+
+  <div id="subscribedView" class="hidden">
+    <div class="status success">✅ You are a subscribed member. This document is FREE for you.</div>
+    <button class="green" onclick="window.open('/legal-letter','_blank')">📥 Download Free PDF</button>
+  </div>
+
+  <div id="unsubscribedView" class="hidden">
+    <div class="status info">This document costs <strong>500 KES</strong> for non-subscribed users.</div>
+    <p><strong>Step 1:</strong> Send 500 KES to <strong>0768610212</strong> via M-Pesa.</p>
+    <p><strong>Step 2:</strong> Enter your M-Pesa Transaction Code below:</p>
+    <input type="text" id="mpesaCode" placeholder="e.g. QWE7XK9LM2">
+    <button class="blue" onclick="submitCode()">Submit for Approval</button>
+    <div id="result"></div>
+  </div>
+
+  <div id="alreadyPaidView" class="hidden">
+    <div class="status info">⏳ Your payment is being reviewed by the Admin. Please check back in a few minutes.</div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) { window.location.href = '/'; }
+
+// Try to access /legal-letter to check subscription status
+fetch('/legal-letter', { headers: { 'Authorization': 'Bearer ' + token } })
+  .then(res => {
+    document.getElementById('loading').style.display = 'none';
+    if (res.status === 200) {
+      document.getElementById('subscribedView').classList.remove('hidden');
+    } else {
+      // Not subscribed - check if already paid
+      fetch('/api/user/pdf-status', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => r.json())
+        .then(data => {
+          if (data.pdfAccessGranted) {
+            document.getElementById('subscribedView').classList.remove('hidden');
+          } else if (data.pendingPdfCode) {
+            document.getElementById('alreadyPaidView').classList.remove('hidden');
+          } else {
+            document.getElementById('unsubscribedView').classList.remove('hidden');
+          }
+        })
+        .catch(() => document.getElementById('unsubscribedView').classList.remove('hidden'));
+    }
+  });
+
+async function submitCode() {
+  const code = document.getElementById('mpesaCode').value.trim();
+  if (!code) { alert('Please enter your M-Pesa code'); return; }
+  const res = await fetch('/api/user/request-pdf', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mpesaCode: code })
+  });
+  const data = await res.json();
+  document.getElementById('result').innerHTML = '<div class="status success">' + (data.message || 'Submitted!') + '</div>';
+  setTimeout(() => location.reload(), 2000);
+}
+</script>
+</body>
+</html>

@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema({
   verificationToken: String, subscriptionExpiryDate: Date, trialReminderSent: { type: Boolean, default: false },
   isSubscribed: { type: Boolean, default: false }, subscriptionExpiryDate: Date,
   provider: { type: String, default: 'local' },
-  paymentHistory: [{ amount: Number, currency: String, date: Date, method: String }]
+  paymentHistory: [{ amount: Number, currency: String, date: Date, method: String }], pdfAccessGranted: { type: Boolean, default: false }, pendingPdfCode: String
 });
 
 const laptopSchema = new mongoose.Schema({
@@ -548,6 +548,57 @@ app.get('/api/auth/profile', verifyToken, async (req, res) => {
 app.get('/profile', (req, res) => {
   res.sendFile(__dirname + '/public/profile.html');
 });
+
+
+// --- LEGAL PDF ROUTES ---
+app.get('/legal-letter', protect, async (req, res) => {
+  // Only allow if subscribed OR if admin has granted access
+  if (!req.user.isSubscribed && !req.user.pdfAccessGranted && !isAdmin(req.user)) {
+    return res.status(403).send('<h1>Access Denied</h1><p>Please subscribe or pay the 500 KES fee to access this document.</p>');
+  }
+  res.send(`<!DOCTYPE html><html><head><title>Legal Recovery Letter</title><style>body{font-family:Arial;padding:40px;max-width:800px;margin:auto;} h1,h2{color:#333;} .box{border:1px solid #ccc;padding:20px;margin:20px 0;}</style></head><body><h1>OFFICIAL DEVICE RECOVERY & BLACKLISTING REQUEST</h1><p>Date: ${new Date().toDateString()}</p><p>To: The Officer Commanding Station (OCS) / The Customer Care Manager (Safaricom/Airtel)</p><div class="box"><p><strong>Device Owner:</strong> ${req.user.name}</p><p><strong>ID Number:</strong> [User to fill in]</p><p><strong>Phone Number:</strong> ${req.user.phone || '[User to fill in]'}</p><p><strong>OB Number:</strong> [User to fill in from Police Station]</p><p><strong>Device IMEI:</strong> [User to fill in from box/receipt]</p></div><p>Dear Sir/Madam,</p><p>I am writing to formally request your assistance in tracking and blacklisting my mobile device which was lost/stolen. I have reported this to the police (OB Number above).</p><p>I kindly request that you forward the IMEI to the Communications Authority (CA) for tracking and blacklist the device on your network to prevent unauthorized use.</p><p>Yours faithfully,<br><br>_______________________<br>${req.user.name}</p><script>window.print();</script></body></html>`);
+});
+
+app.post('/api/user/request-pdf', protect, async (req, res) => {
+  const { mpesaCode } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    user.pendingPdfCode = mpesaCode;
+    await user.save();
+    res.json({ message: '✅ Code submitted! Please wait for Admin approval.' });
+  } catch (err) { res.status(500).json({ error: 'Error saving code' }); }
+});
+
+app.post('/api/admin/approve-pdf', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  const { userId } = req.body;
+  try {
+    const user = await User.findById(userId);
+    user.pdfAccessGranted = true;
+    user.pendingPdfCode = null; // Clear the code after approval
+    await user.save();
+    res.json({ message: '✅ PDF access granted to user.' });
+  } catch (err) { res.status(500).json({ error: 'Error approving' }); }
+});
+// --- END LEGAL PDF ROUTES ---
+
+// --- PDF STATUS & PENDING ENDPOINTS ---
+app.get('/api/user/pdf-status', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('pdfAccessGranted pendingPdfCode');
+    res.json({ pdfAccessGranted: !!user.pdfAccessGranted, pendingPdfCode: user.pendingPdfCode || null });
+  } catch (err) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.get('/api/admin/pending-pdfs', protect, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' });
+  try {
+    const users = await User.find({ pendingPdfCode: { $ne: null } }).select('name email phone pendingPdfCode');
+    res.json(users);
+  } catch (err) { res.status(500).json({ error: 'Error' }); }
+});
+// --- END PDF STATUS & PENDING ENDPOINTS ---
+
 
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
 // --- PESAPAL INTEGRATION ---

@@ -25,7 +25,7 @@
 
   <div id="subscribedView" class="hidden">
     <div class="status success">✅ You are a subscribed member. This document is FREE for you.</div>
-    <button class="green" onclick="window.open('/legal-letter','_blank')">📥 Download Free PDF</button>
+    <button class="green" onclick="downloadPdf()">📥 Download Free PDF</button>
   </div>
 
   <div id="unsubscribedView" class="hidden">
@@ -81,6 +81,20 @@ async function submitCode() {
   document.getElementById('result').innerHTML = '<div class="status success">' + (data.message || 'Submitted!') + '</div>';
   setTimeout(() => location.reload(), 2000);
 }
+
+async function downloadPdf() {
+  const res = await fetch('/legal-letter', { headers: { 'Authorization': 'Bearer ' + token } });
+  if (res.ok) {
+    const html = await res.text();
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  } else {
+    alert('Session expired. Please log in again.');
+    window.location.href = '/index.html';
+  }
+}
+
 </script>
 </body>
 </html>

@@ -177,7 +177,7 @@ async function sendSMS(phoneNumber, message) {
     const options = {
       to: [phoneNumber],
       message: message,
-      from: "LaptopTracker" 
+      from: "LapTracker" 
     };
     const result = await sms.send(options);
     console.log("✅ SMS sent successfully to", phoneNumber);

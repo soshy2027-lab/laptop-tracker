@@ -83,15 +83,21 @@ async function submitCode() {
 }
 
 async function downloadPdf() {
-  const res = await fetch('/legal-letter', { headers: { 'Authorization': 'Bearer ' + token } });
-  if (res.ok) {
-    const html = await res.text();
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-  } else {
-    alert('Session expired. Please log in again.');
-    window.location.href = '/index.html';
+  const currentToken = localStorage.getItem('token');
+  try {
+    const res = await fetch('/legal-letter', { headers: { 'Authorization': 'Bearer ' + currentToken } });
+    if (res.ok) {
+      const html = await res.text();
+      // Replace current page with the PDF content
+      document.open();
+      document.write(html);
+      document.close();
+    } else {
+      alert('Error: ' + res.status + '. Please log in again.');
+      window.location.href = '/index.html';
+    }
+  } catch (err) {
+    alert('Network error. Please check your connection.');
   }
 }
 
